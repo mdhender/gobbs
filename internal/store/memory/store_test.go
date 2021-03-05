@@ -32,25 +32,30 @@ import (
 func TestAuthor(t *testing.T) {
 	// Specification: Author
 
-	// When a new author is created
-	// Then it has a unique ID
-	// And it has the given name
 	for _, tc := range []struct {
 		name string
 	}{
 		{"James Joyce"},
 	} {
 		ds, _ := memory.NewStore()
+
+		// When a new author is created
 		id, _ := ds.CreateAuthor(tc.name)
+
+		// Then it has a unique ID
 		o, ok := ds.FindAuthorByID(id)
 		if !ok {
 			t.Errorf("author does not have unique ID: expected id %q: got no author found\n", id)
-		} else if id != o.ID {
+			continue
+		}
+		if id != o.ID {
 			t.Errorf("author does not have unique ID: expected id %q: got %q\n", id, o.ID)
-		} else {
-			if tc.name != o.Name {
-				t.Errorf("author does not have given name: expected %q: got %q\n", tc.name, o.Name)
-			}
+			continue
+		}
+
+		// And it has the given name
+		if tc.name != o.Name {
+			t.Errorf("author does not have given name: expected %q: got %q\n", tc.name, o.Name)
 		}
 	}
 }
@@ -58,9 +63,6 @@ func TestAuthor(t *testing.T) {
 func TestPost(t *testing.T) {
 	// Specification: Post
 
-	// When a new post is created
-	// Then it has a unique ID
-	// And it has the given title
 	for _, tc := range []struct {
 		author string
 		title  string
@@ -68,16 +70,24 @@ func TestPost(t *testing.T) {
 		{"James Joyce", "Test Post"},
 	} {
 		ds, _ := memory.NewStore()
+
+		// When a new post is created
 		id, _ := ds.CreatePost(tc.title)
+
+		// Then it has a unique ID
 		o, ok := ds.FindPostByID(id)
 		if !ok {
 			t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
-		} else if id != o.ID {
+			continue
+		}
+		if id != o.ID {
 			t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
-		} else {
-			if tc.title != o.Title {
-				t.Errorf("post does not have the given title: expected %q: got %q\n", tc.title, o.Title)
-			}
+			continue
+		}
+
+		// And it has the given title
+		if tc.title != o.Title {
+			t.Errorf("post does not have the given title: expected %q: got %q\n", tc.title, o.Title)
 		}
 	}
 }
