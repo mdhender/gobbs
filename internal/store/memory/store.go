@@ -34,11 +34,13 @@ type Store struct {
 		sync.RWMutex
 	}
 	authors map[string]*Author
+	posts   map[string]*Post
 }
 
 func NewStore() (*Store, error) {
 	return &Store{
 		authors: make(map[string]*Author),
+		posts:   make(map[string]*Post),
 	}, nil
 }
 
@@ -53,6 +55,16 @@ func (ds *Store) CreateAuthor(name string) (string, error) {
 	return auth.ID, nil
 }
 
+func (ds *Store) CreatePost(title string) (string, error) {
+	post := Post{
+		ID: uuid.New().String(),
+	}
+	ds.locks.Lock()
+	ds.posts[post.ID] = &post
+	ds.locks.Unlock()
+	return post.ID, nil
+}
+
 func (ds *Store) FindAuthorByID(id string) (Author, bool) {
 	ds.locks.RLock()
 	auth, ok := ds.authors[id]
@@ -61,4 +73,14 @@ func (ds *Store) FindAuthorByID(id string) (Author, bool) {
 		return Author{}, false
 	}
 	return *auth, true
+}
+
+func (ds *Store) FindPostByID(id string) (Post, bool) {
+	ds.locks.RLock()
+	post, ok := ds.posts[id]
+	ds.locks.RUnlock()
+	if !ok {
+		return Post{}, false
+	}
+	return *post, true
 }

@@ -32,9 +32,9 @@ type Author struct {
 	Roles map[string]bool
 }
 
-type post struct {
-	id        string
-	title     string
-	timestamp time.Time
-	body      string
+type Post struct {
+	ID        string
+	Title     string
+	TimeStamp time.Time
+	Body      string
 }

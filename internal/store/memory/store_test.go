@@ -48,3 +48,19 @@ func TestAuthor(t *testing.T) {
 		}
 	}
 }
+
+// Specification: Post
+
+func TestPost(t *testing.T) {
+	// When a new post is created
+	// Then it has a unique ID
+	ds, _ := memory.NewStore()
+	title := "Test Post"
+	id, _ := ds.CreatePost(title)
+	o, ok := ds.FindPostByID(id)
+	if !ok {
+		t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
+	} else if o.ID != id {
+		t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
+	}
+}
