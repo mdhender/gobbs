@@ -1,2 +1,3 @@
 # gobbs
-Bulletin Board Software written in Go
+A threaded forum server.
+
