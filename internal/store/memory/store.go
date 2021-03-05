@@ -45,15 +45,28 @@ func NewStore() (*Store, error) {
 	}, nil
 }
 
-func (ds *Store) CreateAuthor(name string) (string, error) {
-	auth := author{
+func (ds *Store) createAuthor(name string) (*author, error) {
+	ds.locks.Lock()
+	defer ds.locks.Unlock()
+	for _, author := range ds.authors {
+		if author.name == name {
+			return nil, fmt.Errorf("duplicate name %q: %w", name, ErrDuplicateKey)
+		}
+	}
+	author := author{
 		id:   uuid.New().String(),
 		name: name,
 	}
-	ds.locks.Lock()
-	ds.authors[auth.id] = &auth
-	ds.locks.Unlock()
-	return auth.id, nil
+	ds.authors[author.id] = &author
+	return &author, nil
+}
+
+func (ds *Store) CreateAuthor(name string) (string, error) {
+	author, err := ds.createAuthor(name)
+	if err != nil {
+		return "", err
+	}
+	return author.id, nil
 }
 
 func (ds *Store) CreatePost(authorID, title string) (string, error) {

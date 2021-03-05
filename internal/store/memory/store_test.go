@@ -25,6 +25,7 @@
 package memory_test
 
 import (
+	"errors"
 	"github.com/mdhender/gobbs/internal/store/memory"
 	"testing"
 )
@@ -56,6 +57,28 @@ func TestAuthor(t *testing.T) {
 		// And it has the given name
 		if tc.name != o.Name {
 			t.Errorf("author does not have given name: expected %q: got %q\n", tc.name, o.Name)
+		}
+	}
+
+	for _, tc := range []struct {
+		name string
+	}{
+		{"James Joyce"},
+	} {
+		ds, _ := memory.NewStore()
+		_, _ = ds.CreateAuthor(tc.name)
+
+		// When a new author is created with an existing name
+		id, err := ds.CreateAuthor(tc.name)
+
+		// Then it is rejected as a duplicate key
+		if err == nil {
+			t.Errorf("author with existing name is not rejected: expected error: got id %q\n", id)
+			continue
+		}
+		if !errors.Is(err, memory.ErrDuplicateKey) {
+			t.Errorf("author with existing name is rejected with unexpected error: expected %q: got %q\n", memory.ErrDuplicateKey, err)
+			continue
 		}
 	}
 }
