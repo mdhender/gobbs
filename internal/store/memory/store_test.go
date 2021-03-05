@@ -29,44 +29,55 @@ import (
 	"testing"
 )
 
-// Specification: Author
-
 func TestAuthor(t *testing.T) {
+	// Specification: Author
+
 	// When a new author is created
 	// Then it has a unique ID
-	ds, _ := memory.NewStore()
-	name := "James Joyce"
-	id, _ := ds.CreateAuthor(name)
-	o, ok := ds.FindAuthorByID(id)
-	if !ok {
-		t.Errorf("author does not have unique ID: expected id %q: got no author found\n", id)
-	} else if id != o.ID {
-		t.Errorf("author does not have unique ID: expected id %q: got %q\n", id, o.ID)
-	} else {
-		// And it has the given name
-		if name != o.Name {
-			t.Errorf("author does not have given name: expected %q: got %q\n", name, o.Name)
+	// And it has the given name
+	for _, tc := range []struct {
+		name string
+	}{
+		{"James Joyce"},
+	} {
+		ds, _ := memory.NewStore()
+		id, _ := ds.CreateAuthor(tc.name)
+		o, ok := ds.FindAuthorByID(id)
+		if !ok {
+			t.Errorf("author does not have unique ID: expected id %q: got no author found\n", id)
+		} else if id != o.ID {
+			t.Errorf("author does not have unique ID: expected id %q: got %q\n", id, o.ID)
+		} else {
+			if tc.name != o.Name {
+				t.Errorf("author does not have given name: expected %q: got %q\n", tc.name, o.Name)
+			}
 		}
 	}
 }
 
-// Specification: Post
-
 func TestPost(t *testing.T) {
+	// Specification: Post
+
 	// When a new post is created
 	// Then it has a unique ID
-	ds, _ := memory.NewStore()
-	title := "Test Post"
-	id, _ := ds.CreatePost(title)
-	o, ok := ds.FindPostByID(id)
-	if !ok {
-		t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
-	} else if id != o.ID {
-		t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
-	} else {
-		// And it has the given title
-		if title != o.Title {
-			t.Errorf("post does not have the given title: expected %q: got %q\n", title, o.Title)
+	// And it has the given title
+	for _, tc := range []struct {
+		author string
+		title  string
+	}{
+		{"James Joyce", "Test Post"},
+	} {
+		ds, _ := memory.NewStore()
+		id, _ := ds.CreatePost(tc.title)
+		o, ok := ds.FindPostByID(id)
+		if !ok {
+			t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
+		} else if id != o.ID {
+			t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
+		} else {
+			if tc.title != o.Title {
+				t.Errorf("post does not have the given title: expected %q: got %q\n", tc.title, o.Title)
+			}
 		}
 	}
 }
