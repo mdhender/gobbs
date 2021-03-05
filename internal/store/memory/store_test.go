@@ -129,7 +129,7 @@ func TestMessage(t *testing.T) {
 }
 
 func TestThread(t *testing.T) {
-	// Specification: Message
+	// Specification: Thread
 
 	for _, tc := range []struct {
 		author  string
