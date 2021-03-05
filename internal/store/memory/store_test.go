@@ -62,5 +62,10 @@ func TestPost(t *testing.T) {
 		t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
 	} else if o.ID != id {
 		t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
+	} else {
+		// And it has the given title
+		if o.Title != title {
+			t.Errorf("post does not have the given title: expected %q: got %q\n", title, o.Title)
+		}
 	}
 }
