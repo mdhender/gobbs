@@ -24,29 +24,6 @@
 
 package memory
 
-import "time"
+import "errors"
 
-type Author struct {
-	AuthorID string
-	Name     string
-}
-
-type Post struct {
-	PostID   string
-	AuthorID string
-	Title    string
-}
-
-type author struct {
-	id    string
-	name  string
-	roles map[string]bool
-}
-
-type post struct {
-	id      string
-	author  *author
-	title   string
-	created time.Time
-	body    string
-}
+var ErrNoDataFound = errors.New("no data found")

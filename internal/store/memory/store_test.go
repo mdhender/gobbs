@@ -48,8 +48,8 @@ func TestAuthor(t *testing.T) {
 			t.Errorf("author does not have unique ID: expected id %q: got no author found\n", id)
 			continue
 		}
-		if id != o.ID {
-			t.Errorf("author does not have unique ID: expected id %q: got %q\n", id, o.ID)
+		if id != o.AuthorID {
+			t.Errorf("author does not have unique ID: expected id %q: got %q\n", id, o.AuthorID)
 			continue
 		}
 
@@ -82,8 +82,8 @@ func TestPost(t *testing.T) {
 			t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
 			continue
 		}
-		if id != o.ID {
-			t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
+		if id != o.PostID {
+			t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.PostID)
 			continue
 		}
 

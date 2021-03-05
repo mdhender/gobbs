@@ -25,6 +25,7 @@
 package memory
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"sync"
 )
@@ -33,56 +34,77 @@ type Store struct {
 	locks struct {
 		sync.RWMutex
 	}
-	authors map[string]*Author
-	posts   map[string]*Post
+	authors map[string]*author
+	posts   map[string]*post
 }
 
 func NewStore() (*Store, error) {
 	return &Store{
-		authors: make(map[string]*Author),
-		posts:   make(map[string]*Post),
+		authors: make(map[string]*author),
+		posts:   make(map[string]*post),
 	}, nil
 }
 
 func (ds *Store) CreateAuthor(name string) (string, error) {
-	auth := Author{
-		ID:   uuid.New().String(),
-		Name: name,
+	auth := author{
+		id:   uuid.New().String(),
+		name: name,
 	}
 	ds.locks.Lock()
-	ds.authors[auth.ID] = &auth
+	ds.authors[auth.id] = &auth
 	ds.locks.Unlock()
-	return auth.ID, nil
+	return auth.id, nil
 }
 
 func (ds *Store) CreatePost(authorID, title string) (string, error) {
-	post := Post{
-		ID:       uuid.New().String(),
-		AuthorID: authorID,
-		Title:    title,
+	author := ds.findAuthorByID(authorID)
+	if author == nil {
+		return "", fmt.Errorf("author %q: %w", authorID, ErrNoDataFound)
+	}
+	post := post{
+		id:     uuid.New().String(),
+		author: author,
+		title:  title,
 	}
 	ds.locks.Lock()
-	ds.posts[post.ID] = &post
+	ds.posts[post.id] = &post
 	ds.locks.Unlock()
-	return post.ID, nil
+	return post.id, nil
+}
+
+func (ds *Store) findAuthorByID(id string) *author {
+	ds.locks.RLock()
+	author, _ := ds.authors[id]
+	ds.locks.RUnlock()
+	return author
 }
 
 func (ds *Store) FindAuthorByID(id string) (Author, bool) {
-	ds.locks.RLock()
-	auth, ok := ds.authors[id]
-	ds.locks.RUnlock()
-	if !ok {
+	author := ds.findAuthorByID(id)
+	if author == nil {
 		return Author{}, false
 	}
-	return *auth, true
+	return Author{
+		AuthorID: author.id,
+		Name:     author.name,
+	}, true
+}
+
+func (ds *Store) findPostByID(id string) *post {
+	ds.locks.RLock()
+	post, _ := ds.posts[id]
+	ds.locks.RUnlock()
+	return post
 }
 
 func (ds *Store) FindPostByID(id string) (Post, bool) {
-	ds.locks.RLock()
-	post, ok := ds.posts[id]
-	ds.locks.RUnlock()
-	if !ok {
+	post := ds.findPostByID(id)
+	if post == nil {
 		return Post{}, false
 	}
-	return *post, true
+	return Post{
+		PostID:   post.id,
+		AuthorID: post.author.id,
+		Title:    post.title,
+	}, true
 }
