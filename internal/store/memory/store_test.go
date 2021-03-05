@@ -127,3 +127,51 @@ func TestMessage(t *testing.T) {
 		}
 	}
 }
+
+func TestThread(t *testing.T) {
+	// Specification: Message
+
+	for _, tc := range []struct {
+		author  string
+		subject string
+		body    string
+	}{
+		{"James Joyce", "Test Thread", "Lorem quicksand tenor tomato."},
+	} {
+		ds, _ := memory.NewStore()
+		authorID, _ := ds.CreateAuthor(tc.author)
+
+		// When a new thread is created
+		id, _ := ds.CreateThread(authorID, tc.subject, tc.body)
+
+		// Then it has a unique ID
+		thread, ok := ds.FindThreadByID(id)
+		if !ok {
+			t.Errorf("thread does not have unique ID: expected id %q: got no thread found\n", id)
+			continue
+		}
+		if id != thread.ThreadID {
+			t.Errorf("thread does not have unique ID: expected id %q: got %q\n", id, thread.ThreadID)
+			continue
+		}
+		if id2, _ := ds.CreateThread(authorID, tc.subject, tc.body); id == id2 {
+			t.Errorf("thread does not have unique ID: id %q is not unique\n", id)
+			continue
+		}
+
+		// And it contains the given message
+		if len(thread.Messages) == 0 {
+			t.Errorf("thread does not contain the given message: found 0 messages\n")
+			continue
+		} else if len(thread.Messages) != 1 {
+			t.Errorf("thread contains unexpected messages: expected %d: found %d messages\n", 1, len(thread.Messages))
+			continue
+		}
+		if authorID != thread.Messages[0].AuthorID {
+			t.Errorf("thread does not contain the given message: expected author %q: found %q\n", authorID, thread.Messages[0].AuthorID)
+		}
+		if tc.subject != thread.Messages[0].Subject {
+			t.Errorf("thread does not contain the given message: expected subject %q: found %q\n", tc.subject, thread.Messages[0].Subject)
+		}
+	}
+}

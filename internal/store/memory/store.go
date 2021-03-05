@@ -35,6 +35,7 @@ func NewStore() (*Store, error) {
 	return &Store{
 		authors:  make(map[string]*author),
 		messages: make(map[string]*message),
+		threads:  make(map[string]*thread),
 	}, nil
 }
 
@@ -44,6 +45,7 @@ type Store struct {
 	}
 	authors  map[string]*author
 	messages map[string]*message
+	threads  map[string]*thread
 }
 
 type author struct {
@@ -58,6 +60,11 @@ type message struct {
 	subject string
 	created time.Time
 	body    string
+}
+
+type thread struct {
+	id       string
+	messages []*message
 }
 
 func (ds *Store) createAuthor(name string) (*author, error) {
@@ -93,6 +100,21 @@ func (ds *Store) createMessage(authorID, subject, body string) (*message, error)
 	return &message, nil
 }
 
+func (ds *Store) createThread(authorID, subject, body string) (*thread, error) {
+	msg, err := ds.createMessage(authorID, subject, body)
+	if err != nil {
+		return nil, err
+	}
+	thread := &thread{
+		id:       uuid.New().String(),
+		messages: []*message{msg},
+	}
+	ds.locks.Lock()
+	ds.threads[thread.id] = thread
+	ds.locks.Unlock()
+	return thread, nil
+}
+
 func (ds *Store) findAuthorByID(id string) *author {
 	ds.locks.RLock()
 	author, _ := ds.authors[id]
@@ -105,4 +127,11 @@ func (ds *Store) findMessageByID(id string) *message {
 	message, _ := ds.messages[id]
 	ds.locks.RUnlock()
 	return message
+}
+
+func (ds *Store) findThreadByID(id string) *thread {
+	ds.locks.RLock()
+	thread, _ := ds.threads[id]
+	ds.locks.RUnlock()
+	return thread
 }
