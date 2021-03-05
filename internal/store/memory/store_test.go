@@ -71,8 +71,10 @@ func TestPost(t *testing.T) {
 	} {
 		ds, _ := memory.NewStore()
 
+		authorID, _ := ds.CreateAuthor(tc.author)
+
 		// When a new post is created
-		id, _ := ds.CreatePost(tc.title)
+		id, _ := ds.CreatePost(authorID, tc.title)
 
 		// Then it has a unique ID
 		o, ok := ds.FindPostByID(id)
@@ -88,6 +90,11 @@ func TestPost(t *testing.T) {
 		// And it has the given title
 		if tc.title != o.Title {
 			t.Errorf("post does not have the given title: expected %q: got %q\n", tc.title, o.Title)
+		}
+
+		// And it has the given author
+		if authorID != o.AuthorID {
+			t.Errorf("post does not have the given author: expected %q: got %q\n", authorID, o.AuthorID)
 		}
 	}
 }

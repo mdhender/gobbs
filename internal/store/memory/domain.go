@@ -34,6 +34,7 @@ type Author struct {
 
 type Post struct {
 	ID        string
+	AuthorID  string
 	Title     string
 	TimeStamp time.Time
 	Body      string
