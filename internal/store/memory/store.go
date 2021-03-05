@@ -55,7 +55,7 @@ type author struct {
 type message struct {
 	id      string
 	author  *author
-	title   string
+	subject string
 	created time.Time
 	body    string
 }
@@ -76,16 +76,16 @@ func (ds *Store) createAuthor(name string) (*author, error) {
 	return &author, nil
 }
 
-func (ds *Store) createMessage(authorID, title, body string) (*message, error) {
+func (ds *Store) createMessage(authorID, subject, body string) (*message, error) {
 	author := ds.findAuthorByID(authorID)
 	if author == nil {
 		return nil, fmt.Errorf("author %q: %w", authorID, ErrNoDataFound)
 	}
 	message := message{
-		id:     uuid.New().String(),
-		author: author,
-		title:  title,
-		body:   body,
+		id:      uuid.New().String(),
+		author:  author,
+		subject: subject,
+		body:    body,
 	}
 	ds.locks.Lock()
 	ds.messages[message.id] = &message
@@ -102,7 +102,7 @@ func (ds *Store) findAuthorByID(id string) *author {
 
 func (ds *Store) findMessageByID(id string) *message {
 	ds.locks.RLock()
-	messages, _ := ds.messages[id]
+	message, _ := ds.messages[id]
 	ds.locks.RUnlock()
-	return messages
+	return message
 }

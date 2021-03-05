@@ -87,9 +87,9 @@ func TestMessage(t *testing.T) {
 	// Specification: Message
 
 	for _, tc := range []struct {
-		author string
-		title  string
-		body   string
+		author  string
+		subject string
+		body    string
 	}{
 		{"James Joyce", "Test Message", "Lorem quicksand tenor tomato."},
 	} {
@@ -98,7 +98,7 @@ func TestMessage(t *testing.T) {
 		authorID, _ := ds.CreateAuthor(tc.author)
 
 		// When a new message is created
-		id, _ := ds.CreateMessage(authorID, tc.title, tc.body)
+		id, _ := ds.CreateMessage(authorID, tc.subject, tc.body)
 
 		// Then it has a unique ID
 		o, ok := ds.FindMessageByID(id)
@@ -112,8 +112,8 @@ func TestMessage(t *testing.T) {
 		}
 
 		// And it has the given title
-		if tc.title != o.Title {
-			t.Errorf("message does not have the given title: expected %q: got %q\n", tc.title, o.Title)
+		if tc.subject != o.Subject {
+			t.Errorf("message does not have the given subject: expected %q: got %q\n", tc.subject, o.Subject)
 		}
 
 		// And it has the given author

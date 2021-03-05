@@ -32,7 +32,7 @@ type Author struct {
 type Message struct {
 	MessageID string
 	AuthorID  string
-	Title     string
+	Subject   string
 	Body      string
 }
 
@@ -44,12 +44,12 @@ func (ds *Store) CreateAuthor(name string) (string, error) {
 	return author.id, nil
 }
 
-func (ds *Store) CreateMessage(authorID, title, body string) (string, error) {
-	post, err := ds.createMessage(authorID, title, body)
+func (ds *Store) CreateMessage(authorID, subject, body string) (string, error) {
+	message, err := ds.createMessage(authorID, subject, body)
 	if err != nil {
 		return "", err
 	}
-	return post.id, nil
+	return message.id, nil
 }
 
 func (ds *Store) FindAuthorByID(id string) (Author, bool) {
@@ -71,7 +71,7 @@ func (ds *Store) FindMessageByID(id string) (Message, bool) {
 	return Message{
 		MessageID: message.id,
 		AuthorID:  message.author.id,
-		Title:     message.title,
+		Subject:   message.subject,
 		Body:      message.body,
 	}, true
 }
