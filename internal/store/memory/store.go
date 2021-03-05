@@ -33,8 +33,8 @@ import (
 
 func NewStore() (*Store, error) {
 	return &Store{
-		authors: make(map[string]*author),
-		posts:   make(map[string]*post),
+		authors:  make(map[string]*author),
+		messages: make(map[string]*message),
 	}, nil
 }
 
@@ -42,8 +42,8 @@ type Store struct {
 	locks struct {
 		sync.RWMutex
 	}
-	authors map[string]*author
-	posts   map[string]*post
+	authors  map[string]*author
+	messages map[string]*message
 }
 
 type author struct {
@@ -52,7 +52,7 @@ type author struct {
 	roles map[string]bool
 }
 
-type post struct {
+type message struct {
 	id      string
 	author  *author
 	title   string
@@ -76,21 +76,21 @@ func (ds *Store) createAuthor(name string) (*author, error) {
 	return &author, nil
 }
 
-func (ds *Store) createPost(authorID, title, body string) (*post, error) {
+func (ds *Store) createMessage(authorID, title, body string) (*message, error) {
 	author := ds.findAuthorByID(authorID)
 	if author == nil {
 		return nil, fmt.Errorf("author %q: %w", authorID, ErrNoDataFound)
 	}
-	post := post{
+	message := message{
 		id:     uuid.New().String(),
 		author: author,
 		title:  title,
 		body:   body,
 	}
 	ds.locks.Lock()
-	ds.posts[post.id] = &post
+	ds.messages[message.id] = &message
 	ds.locks.Unlock()
-	return &post, nil
+	return &message, nil
 }
 
 func (ds *Store) findAuthorByID(id string) *author {
@@ -100,9 +100,9 @@ func (ds *Store) findAuthorByID(id string) *author {
 	return author
 }
 
-func (ds *Store) findPostByID(id string) *post {
+func (ds *Store) findMessageByID(id string) *message {
 	ds.locks.RLock()
-	post, _ := ds.posts[id]
+	messages, _ := ds.messages[id]
 	ds.locks.RUnlock()
-	return post
+	return messages
 }

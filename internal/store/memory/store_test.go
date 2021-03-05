@@ -83,47 +83,47 @@ func TestAuthor(t *testing.T) {
 	}
 }
 
-func TestPost(t *testing.T) {
-	// Specification: Post
+func TestMessage(t *testing.T) {
+	// Specification: Message
 
 	for _, tc := range []struct {
 		author string
 		title  string
 		body   string
 	}{
-		{"James Joyce", "Test Post", "Lorem quicksand tenor tomato."},
+		{"James Joyce", "Test Message", "Lorem quicksand tenor tomato."},
 	} {
 		ds, _ := memory.NewStore()
 
 		authorID, _ := ds.CreateAuthor(tc.author)
 
-		// When a new post is created
-		id, _ := ds.CreatePost(authorID, tc.title, tc.body)
+		// When a new message is created
+		id, _ := ds.CreateMessage(authorID, tc.title, tc.body)
 
 		// Then it has a unique ID
-		o, ok := ds.FindPostByID(id)
+		o, ok := ds.FindMessageByID(id)
 		if !ok {
-			t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
+			t.Errorf("message does not have unique ID: expected id %q: got no message found\n", id)
 			continue
 		}
-		if id != o.PostID {
-			t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.PostID)
+		if id != o.MessageID {
+			t.Errorf("message does not have unique ID: expected id %q: got %q\n", id, o.MessageID)
 			continue
 		}
 
 		// And it has the given title
 		if tc.title != o.Title {
-			t.Errorf("post does not have the given title: expected %q: got %q\n", tc.title, o.Title)
+			t.Errorf("message does not have the given title: expected %q: got %q\n", tc.title, o.Title)
 		}
 
 		// And it has the given author
 		if authorID != o.AuthorID {
-			t.Errorf("post does not have the given author: expected %q: got %q\n", authorID, o.AuthorID)
+			t.Errorf("message does not have the given author: expected %q: got %q\n", authorID, o.AuthorID)
 		}
 
 		// And it has the given body
 		if tc.body != o.Body {
-			t.Errorf("post does not have the given body: expected %q: got %q\n", tc.body, o.Body)
+			t.Errorf("message does not have the given body: expected %q: got %q\n", tc.body, o.Body)
 		}
 	}
 }
