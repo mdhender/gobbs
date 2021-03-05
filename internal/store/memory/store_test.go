@@ -35,16 +35,17 @@ func TestAuthor(t *testing.T) {
 	// When a new author is created
 	// Then it has a unique ID
 	ds, _ := memory.NewStore()
-	id, _ := ds.CreateAuthor("James Joyce")
+	name := "James Joyce"
+	id, _ := ds.CreateAuthor(name)
 	o, ok := ds.FindAuthorByID(id)
 	if !ok {
 		t.Errorf("author does not have unique ID: expected id %q: got no author found\n", id)
-	} else if o.ID != id {
+	} else if id != o.ID {
 		t.Errorf("author does not have unique ID: expected id %q: got %q\n", id, o.ID)
 	} else {
 		// And it has the given name
-		if o.Name != "James Joyce" {
-			t.Errorf("author does not have given name: expected %q: got %q\n", "James Joyce", o.Name)
+		if name != o.Name {
+			t.Errorf("author does not have given name: expected %q: got %q\n", name, o.Name)
 		}
 	}
 }
@@ -60,11 +61,11 @@ func TestPost(t *testing.T) {
 	o, ok := ds.FindPostByID(id)
 	if !ok {
 		t.Errorf("post does not have unique ID: expected id %q: got no post found\n", id)
-	} else if o.ID != id {
+	} else if id != o.ID {
 		t.Errorf("post does not have unique ID: expected id %q: got %q\n", id, o.ID)
 	} else {
 		// And it has the given title
-		if o.Title != title {
+		if title != o.Title {
 			t.Errorf("post does not have the given title: expected %q: got %q\n", title, o.Title)
 		}
 	}

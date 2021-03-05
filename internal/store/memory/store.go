@@ -57,7 +57,7 @@ func (ds *Store) CreateAuthor(name string) (string, error) {
 
 func (ds *Store) CreatePost(title string) (string, error) {
 	post := Post{
-		ID: uuid.New().String(),
+		ID:    uuid.New().String(),
 		Title: title,
 	}
 	ds.locks.Lock()
