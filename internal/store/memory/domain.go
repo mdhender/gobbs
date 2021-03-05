@@ -24,8 +24,6 @@
 
 package memory
 
-import "time"
-
 type Author struct {
 	AuthorID string
 	Name     string
@@ -37,16 +35,41 @@ type Post struct {
 	Title    string
 }
 
-type author struct {
-	id    string
-	name  string
-	roles map[string]bool
+func (ds *Store) CreateAuthor(name string) (string, error) {
+	author, err := ds.createAuthor(name)
+	if err != nil {
+		return "", err
+	}
+	return author.id, nil
 }
 
-type post struct {
-	id      string
-	author  *author
-	title   string
-	created time.Time
-	body    string
+func (ds *Store) CreatePost(authorID, title string) (string, error) {
+	post, err := ds.createPost(authorID, title)
+	if err != nil {
+		return "", err
+	}
+	return post.id, nil
+}
+
+func (ds *Store) FindAuthorByID(id string) (Author, bool) {
+	author := ds.findAuthorByID(id)
+	if author == nil {
+		return Author{}, false
+	}
+	return Author{
+		AuthorID: author.id,
+		Name:     author.name,
+	}, true
+}
+
+func (ds *Store) FindPostByID(id string) (Post, bool) {
+	post := ds.findPostByID(id)
+	if post == nil {
+		return Post{}, false
+	}
+	return Post{
+		PostID:   post.id,
+		AuthorID: post.author.id,
+		Title:    post.title,
+	}, true
 }

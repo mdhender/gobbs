@@ -28,7 +28,15 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"sync"
+	"time"
 )
+
+func NewStore() (*Store, error) {
+	return &Store{
+		authors: make(map[string]*author),
+		posts:   make(map[string]*post),
+	}, nil
+}
 
 type Store struct {
 	locks struct {
@@ -38,11 +46,18 @@ type Store struct {
 	posts   map[string]*post
 }
 
-func NewStore() (*Store, error) {
-	return &Store{
-		authors: make(map[string]*author),
-		posts:   make(map[string]*post),
-	}, nil
+type author struct {
+	id    string
+	name  string
+	roles map[string]bool
+}
+
+type post struct {
+	id      string
+	author  *author
+	title   string
+	created time.Time
+	body    string
 }
 
 func (ds *Store) createAuthor(name string) (*author, error) {
@@ -61,18 +76,10 @@ func (ds *Store) createAuthor(name string) (*author, error) {
 	return &author, nil
 }
 
-func (ds *Store) CreateAuthor(name string) (string, error) {
-	author, err := ds.createAuthor(name)
-	if err != nil {
-		return "", err
-	}
-	return author.id, nil
-}
-
-func (ds *Store) CreatePost(authorID, title string) (string, error) {
+func (ds *Store) createPost(authorID, title string) (*post, error) {
 	author := ds.findAuthorByID(authorID)
 	if author == nil {
-		return "", fmt.Errorf("author %q: %w", authorID, ErrNoDataFound)
+		return nil, fmt.Errorf("author %q: %w", authorID, ErrNoDataFound)
 	}
 	post := post{
 		id:     uuid.New().String(),
@@ -82,7 +89,7 @@ func (ds *Store) CreatePost(authorID, title string) (string, error) {
 	ds.locks.Lock()
 	ds.posts[post.id] = &post
 	ds.locks.Unlock()
-	return post.id, nil
+	return &post, nil
 }
 
 func (ds *Store) findAuthorByID(id string) *author {
@@ -92,32 +99,9 @@ func (ds *Store) findAuthorByID(id string) *author {
 	return author
 }
 
-func (ds *Store) FindAuthorByID(id string) (Author, bool) {
-	author := ds.findAuthorByID(id)
-	if author == nil {
-		return Author{}, false
-	}
-	return Author{
-		AuthorID: author.id,
-		Name:     author.name,
-	}, true
-}
-
 func (ds *Store) findPostByID(id string) *post {
 	ds.locks.RLock()
 	post, _ := ds.posts[id]
 	ds.locks.RUnlock()
 	return post
-}
-
-func (ds *Store) FindPostByID(id string) (Post, bool) {
-	post := ds.findPostByID(id)
-	if post == nil {
-		return Post{}, false
-	}
-	return Post{
-		PostID:   post.id,
-		AuthorID: post.author.id,
-		Title:    post.title,
-	}, true
 }
