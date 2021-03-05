@@ -89,15 +89,16 @@ func TestPost(t *testing.T) {
 	for _, tc := range []struct {
 		author string
 		title  string
+		body   string
 	}{
-		{"James Joyce", "Test Post"},
+		{"James Joyce", "Test Post", "Lorem quicksand tenor tomato."},
 	} {
 		ds, _ := memory.NewStore()
 
 		authorID, _ := ds.CreateAuthor(tc.author)
 
 		// When a new post is created
-		id, _ := ds.CreatePost(authorID, tc.title)
+		id, _ := ds.CreatePost(authorID, tc.title, tc.body)
 
 		// Then it has a unique ID
 		o, ok := ds.FindPostByID(id)
@@ -118,6 +119,11 @@ func TestPost(t *testing.T) {
 		// And it has the given author
 		if authorID != o.AuthorID {
 			t.Errorf("post does not have the given author: expected %q: got %q\n", authorID, o.AuthorID)
+		}
+
+		// And it has the given body
+		if tc.body != o.Body {
+			t.Errorf("post does not have the given body: expected %q: got %q\n", tc.body, o.Body)
 		}
 	}
 }

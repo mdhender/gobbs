@@ -33,6 +33,7 @@ type Post struct {
 	PostID   string
 	AuthorID string
 	Title    string
+	Body     string
 }
 
 func (ds *Store) CreateAuthor(name string) (string, error) {
@@ -43,8 +44,8 @@ func (ds *Store) CreateAuthor(name string) (string, error) {
 	return author.id, nil
 }
 
-func (ds *Store) CreatePost(authorID, title string) (string, error) {
-	post, err := ds.createPost(authorID, title)
+func (ds *Store) CreatePost(authorID, title, body string) (string, error) {
+	post, err := ds.createPost(authorID, title, body)
 	if err != nil {
 		return "", err
 	}
@@ -71,5 +72,6 @@ func (ds *Store) FindPostByID(id string) (Post, bool) {
 		PostID:   post.id,
 		AuthorID: post.author.id,
 		Title:    post.title,
+		Body:     post.body,
 	}, true
 }

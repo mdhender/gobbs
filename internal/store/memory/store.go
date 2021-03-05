@@ -76,7 +76,7 @@ func (ds *Store) createAuthor(name string) (*author, error) {
 	return &author, nil
 }
 
-func (ds *Store) createPost(authorID, title string) (*post, error) {
+func (ds *Store) createPost(authorID, title, body string) (*post, error) {
 	author := ds.findAuthorByID(authorID)
 	if author == nil {
 		return nil, fmt.Errorf("author %q: %w", authorID, ErrNoDataFound)
@@ -85,6 +85,7 @@ func (ds *Store) createPost(authorID, title string) (*post, error) {
 		id:     uuid.New().String(),
 		author: author,
 		title:  title,
+		body:   body,
 	}
 	ds.locks.Lock()
 	ds.posts[post.id] = &post
