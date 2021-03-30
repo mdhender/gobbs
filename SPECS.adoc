@@ -1,0 +1,38 @@
+= GoBBS
+Doc Writer <doc@example.com>
+v1.0, 2021-03-30
+:doctype: book
+:sectnums:
+:sectnumlevels: 5
+:partnums:
+:toc: right
+
+:sectnums!:
+== Foreword
+Thanks to everyone that was part of the BB community.
+
+:sectnums:
+== Introduction
+GoBBS is a forum server with a browser client.
+I started it because I like https://www.phpbb.com/[phpBB]
+but I don't enjoy installing, configuring, and securing
+PHP on servers.
+
+== Specifications
+
+=== Registration creates a new user
+As a bulletin board operator,
+I want to register new users,
+so that they can read posts.
+
+==== Registration should generate a link to complete the account setup
+Given that a user wants an account
+and I have the user's e-mail address,
+when I register the user,
+then the system should e-mail the user a link
+and allow the user to add a password and handle to the account.
+
+==== Links should not be reusable
+Given that a user has visited the link
+when the link is visited again,
+then the system should deny access.
