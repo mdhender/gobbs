@@ -28,34 +28,32 @@
 package shash
 
 import (
-	"crypto/sha1"
-	"fmt"
+	"crypto/sha256"
+	"encoding/hex"
 )
 
-func New(salt []byte) func([]byte) string {
-	if len(salt) == 0 {
-		panic("assert(len(salt) != 0)")
-	} else if len(salt) < 128 {
-		tmp := make([]byte, 128, 128)
-		for i := 0; i < 128; i++ {
-			tmp[i] = salt[i%len(salt)]
-		}
-		salt = sha1.New().Sum(tmp)
-	} else {
-		salt = sha1.New().Sum(salt)
+func New(salt []byte, rounds int) func([]byte) string {
+	if len(salt) < 8 {
+		panic("assert(len(salt) >= 8)")
 	}
+	if rounds < 8 {
+		rounds = 8
+	}
+	saltHash := sha256.New()
+	saltHash.Write(salt)
+	salt = saltHash.Sum(nil)
 	return func(secret []byte) string {
-		hash := sha1.New()
+		hash := sha256.New()
 		hash.Write(salt)
-		buf := hash.Sum(nil)
-		hash.Reset()
-		hash.Write(buf)
 		hash.Write(secret)
-		buf = hash.Sum(nil)
-		hash.Reset()
-		hash.Write(buf)
-		hash.Write(salt)
-		buf = hash.Sum(nil)
-		return fmt.Sprintf("%d % x", len(buf), buf)
+		buf := hash.Sum(nil)
+		for i := 0; i < rounds; i++ {
+			hash.Reset()
+			hash.Write(buf)
+			hash.Write(salt)
+			hash.Write(secret)
+			buf = hash.Sum(nil)
+		}
+		return hex.EncodeToString(buf)
 	}
 }
