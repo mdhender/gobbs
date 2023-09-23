@@ -64,8 +64,7 @@ func main() {
 func run(cfg *config.Config) error {
 	// set up database connection
 	ctx := context.Background()
-	dsn := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True", cfg.DB.User, cfg.DB.Secret, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name)
-	db, err := sql.Open("mysql", dsn)
+	db, err := sql.Open("mysql", cfg.DB.DSN())
 	if err != nil {
 		return err
 	}

@@ -44,13 +44,7 @@ type Config struct {
 		HttpOnly bool
 		Secure   bool
 	}
-	DB struct {
-		Host   string
-		Port   int
-		Name   string
-		User   string
-		Secret string
-	}
+	DB   DBConfig
 	Data struct {
 		Path string
 	}
@@ -125,6 +119,9 @@ func (cfg *Config) Load() error {
 	}
 
 	cfg.App.Root = path.Clean(cfg.App.Root)
+	if cfg.DB.Port == 0 {
+		cfg.DB.Port = 3306
+	}
 	cfg.Data.Path = path.Clean(cfg.Data.Path)
 	cfg.Server.WebRoot = path.Clean(cfg.Server.WebRoot)
 
