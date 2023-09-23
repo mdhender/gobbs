@@ -26,16 +26,28 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"github.com/mdhender/gobbs/internal/config"
+	"github.com/mdhender/gobbs/internal/dot"
+	"github.com/mdhender/gobbs/internal/mybb"
 	"github.com/mdhender/gobbs/internal/server"
 	"log"
 	"os"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.LUTC) // force logs to be UTC
+	log.SetFlags(log.LstdFlags | log.LUTC)
+
 	log.Println("[main] entered")
+
+	if err := dot.Load("GOBBS", false, false); err != nil {
+		log.Fatalf("main: %+v\n", err)
+	}
 
 	cfg := config.Default()
 	if err := cfg.Load(); err != nil {
@@ -50,6 +62,27 @@ func main() {
 }
 
 func run(cfg *config.Config) error {
+	// set up database connection
+	ctx := context.Background()
+	dsn := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True", cfg.DB.User, cfg.DB.Secret, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return err
+	}
+	queries := mybb.New(db)
+
+	// list all templates
+	started := time.Now()
+	tmps, err := queries.GetTemplates(ctx)
+	if err != nil {
+		return err
+	}
+	log.Printf("query ran %v\n", time.Now().Sub(started))
+	log.Printf("length(tmps) is %d\n", len(tmps))
+	for n, t := range tmps {
+		log.Printf("%3d: %-30s %8d\n", n, t.Title, len(t.Template))
+	}
+
 	srv, err := server.New(cfg)
 	if err != nil {
 		return err

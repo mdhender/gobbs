@@ -1,4 +1,3 @@
-*                         text eol=lf
 *.adoc                    text eol=lf
 *.css                     text eol=lf
 *.go                      text eol=lf
@@ -14,11 +13,15 @@
 *.md                      text eol=lf
 *.psv                     text eol=lf
 *.sh                      text eol=lf
-*.sh                      text eol=lf
+*.sql                     text eol=lf
 *.txt                     text eol=lf
-.gitattributes            export-ignore
+*.yaml                    text eol=lf
+.env                      text eol=lf
+.env.*                    text eol=lf
 .gitattributes            text eol=lf
-.gitignore                export-ignore
 .gitignore                text eol=lf
+.gitkeep                  text eol=lf
+go.mod                    text eol=lf
+go.sum                    text eol=lf
 Dockerfile                text eol=lf
 LICENSE                   text eol=lf

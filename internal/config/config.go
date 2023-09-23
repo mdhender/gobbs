@@ -40,6 +40,20 @@ type Config struct {
 		Root            string
 		TimestampFormat string
 	}
+	Cookies struct {
+		HttpOnly bool
+		Secure   bool
+	}
+	DB struct {
+		Host   string
+		Port   int
+		Name   string
+		User   string
+		Secret string
+	}
+	Data struct {
+		Path string
+	}
 	FileName string
 	Server   struct {
 		Scheme  string
@@ -54,13 +68,6 @@ type Config struct {
 		Salt    string
 		WebRoot string
 	}
-	Cookies struct {
-		HttpOnly bool
-		Secure   bool
-	}
-	Data struct {
-		Path string
-	}
 }
 
 // Default returns a default configuration.
@@ -69,62 +76,57 @@ func Default() *Config {
 	var cfg Config
 	cfg.App.Root = "D:/GoLand/gobbs/"
 	cfg.App.TimestampFormat = "2006-01-02T15:04:05.99999999Z"
+	cfg.DB.Port = 3306
 	cfg.Data.Path = cfg.App.Root + "test/data/"
-	cfg.Server.Scheme = "http"
 	cfg.Server.Host = "localhost"
+	cfg.Server.Key = "curry.aka.yrruc"
 	cfg.Server.Port = "3000"
+	cfg.Server.Salt = "pepper"
+	cfg.Server.Scheme = "http"
 	cfg.Server.Timeout.Idle = 10 * time.Second
 	cfg.Server.Timeout.Read = 5 * time.Second
 	cfg.Server.Timeout.Write = 10 * time.Second
-	cfg.Server.Key = "curry.aka.yrruc"
-	cfg.Server.Salt = "pepper"
 	cfg.Server.WebRoot = cfg.App.Root + "web/"
 	return &cfg
 }
 
 // Load updates the values in a Config in this order:
-//   1. It will load a configuration file if one is given on the
-//      command line via the `-config` flag. If provided, the file
-//      must contain a valid JSON object.
-//   2. Environment variables, using the prefix `GOBBS`
-//   3. Command line flags
+//  1. It will load a configuration file if one is given on the
+//     command line via the `-config` flag. If provided, the file
+//     must contain a valid JSON object.
+//  2. Environment variables, using the prefix `GOBBS`
+//  3. Command line flags
 func (cfg *Config) Load() error {
 	fs := flag.NewFlagSet("Server", flag.ExitOnError)
-	fileName := fs.String("config", cfg.FileName, "config file (optional)")
-	debug := fs.Bool("debug", cfg.Debug, "log debug information (optional)")
-	appRoot := fs.String("root", cfg.App.Root, "path to treat as root for relative file references")
-	dataPath := fs.String("data-path", cfg.Data.Path, "path containing data files")
-	serverCookiesHttpOnly := fs.Bool("cookies-http-only", cfg.Cookies.HttpOnly, "set HttpOnly flag on cookies")
-	serverCookiesSecure := fs.Bool("cookies-secure", cfg.Cookies.Secure, "set Secure flag on cookies")
-	serverScheme := fs.String("scheme", cfg.Server.Scheme, "http scheme, either 'http' or 'https'")
-	serverHost := fs.String("host", cfg.Server.Host, "host name (or IP) to listen on")
-	serverPort := fs.String("port", cfg.Server.Port, "port to listen on")
-	serverKey := fs.String("key", cfg.Server.Key, "set key for signing tokens")
-	serverSalt := fs.String("salt", cfg.Server.Salt, "set salt for hashing passwords")
-	serverTimeoutIdle := fs.Duration("idle-timeout", cfg.Server.Timeout.Idle, "http idle timeout")
-	serverTimeoutRead := fs.Duration("read-timeout", cfg.Server.Timeout.Read, "http read timeout")
-	serverTimeoutWrite := fs.Duration("write-timeout", cfg.Server.Timeout.Write, "http write timeout")
-	serverWebRoot := fs.String("web-root", cfg.Server.WebRoot, "path to serve web assets from")
+
+	fs.BoolVar(&cfg.Cookies.HttpOnly, "cookies-http-only", cfg.Cookies.HttpOnly, "set HttpOnly flag on cookies")
+	fs.BoolVar(&cfg.Cookies.Secure, "cookies-secure", cfg.Cookies.Secure, "set Secure flag on cookies")
+	fs.BoolVar(&cfg.Debug, "debug", cfg.Debug, "log debug information (optional)")
+	fs.DurationVar(&cfg.Server.Timeout.Idle, "idle-timeout", cfg.Server.Timeout.Idle, "http idle timeout")
+	fs.DurationVar(&cfg.Server.Timeout.Read, "read-timeout", cfg.Server.Timeout.Read, "http read timeout")
+	fs.DurationVar(&cfg.Server.Timeout.Write, "write-timeout", cfg.Server.Timeout.Write, "http write timeout")
+	fs.IntVar(&cfg.DB.Port, "db-port", cfg.DB.Port, "port of mysql database")
+	fs.StringVar(&cfg.App.Root, "root", cfg.App.Root, "path to treat as root for relative file references")
+	fs.StringVar(&cfg.DB.Host, "db-host", cfg.DB.Host, "host of mysql database")
+	fs.StringVar(&cfg.DB.Name, "db-name", cfg.DB.Name, "name of mysql database")
+	fs.StringVar(&cfg.DB.Secret, "db-secret", cfg.DB.Secret, "secret for mysql database")
+	fs.StringVar(&cfg.DB.User, "db-user", cfg.DB.User, "user in mysql database")
+	fs.StringVar(&cfg.Data.Path, "data-path", cfg.Data.Path, "path containing data files")
+	fs.StringVar(&cfg.FileName, "config", cfg.FileName, "config file (optional)")
+	fs.StringVar(&cfg.Server.Host, "host", cfg.Server.Host, "host name (or IP) to listen on")
+	fs.StringVar(&cfg.Server.Key, "key", cfg.Server.Key, "set key for signing tokens")
+	fs.StringVar(&cfg.Server.Port, "port", cfg.Server.Port, "port to listen on")
+	fs.StringVar(&cfg.Server.Salt, "salt", cfg.Server.Salt, "set salt for hashing passwords")
+	fs.StringVar(&cfg.Server.Scheme, "scheme", cfg.Server.Scheme, "http scheme, either 'http' or 'https'")
+	fs.StringVar(&cfg.Server.WebRoot, "web-root", cfg.Server.WebRoot, "path to serve web assets from")
 
 	if err := ff.Parse(fs, os.Args[1:], ff.WithEnvVarPrefix("GOBBS"), ff.WithConfigFileFlag("config"), ff.WithConfigFileParser(ff.JSONParser)); err != nil {
 		return err
 	}
 
-	cfg.Debug = *debug
-	cfg.App.Root = path.Clean(*appRoot)
-	cfg.FileName = *fileName
-	cfg.Cookies.HttpOnly = *serverCookiesHttpOnly
-	cfg.Cookies.Secure = *serverCookiesSecure
-	cfg.Data.Path = path.Clean(*dataPath)
-	cfg.Server.Scheme = *serverScheme
-	cfg.Server.Host = *serverHost
-	cfg.Server.Port = *serverPort
-	cfg.Server.Key = *serverKey
-	cfg.Server.Salt = *serverSalt
-	cfg.Server.Timeout.Idle = *serverTimeoutIdle
-	cfg.Server.Timeout.Read = *serverTimeoutRead
-	cfg.Server.Timeout.Write = *serverTimeoutWrite
-	cfg.Server.WebRoot = path.Clean(*serverWebRoot)
+	cfg.App.Root = path.Clean(cfg.App.Root)
+	cfg.Data.Path = path.Clean(cfg.Data.Path)
+	cfg.Server.WebRoot = path.Clean(cfg.Server.WebRoot)
 
 	return nil
 }
