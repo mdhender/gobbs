@@ -1,9 +1,12 @@
 version: 2
 sql:
-  - engine: "mysql"
-    schema: "schema"
+  - engine: "sqlite"
+    schema: "schema/schema_sqlite.sql"
     queries: "queries"
     gen:
       go:
         package: "mybb"
         out: "../../internal/mybb"
+        overrides:
+          - column: "threads.visible"
+            go_type: "int8"

@@ -1,6 +1,6 @@
 -- name: GetSessionData :one
 SELECT *
-FROM PBMnet_sessions
+FROM sessions
 WHERE sid = ?
 ;
 

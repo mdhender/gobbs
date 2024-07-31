@@ -1,6 +1,6 @@
 -- name: GetTemplates :many
 SELECT title, template
-FROM PBMnet_templates
+FROM templates
 WHERE title IN
       ('', 'index', 'index_whosonline', 'index_whosonline_memberbit', 'forumbit_depth1_cat', 'forumbit_depth2_cat',
        'forumbit_depth2_forum', 'forumbit_depth1_forum_lastpost', 'forumbit_depth2_forum_lastpost',
