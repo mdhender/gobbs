@@ -1,3 +1,9 @@
+--  Copyright (c) 2024 Michael D Henderson. All rights reserved.
+
+/*
+ * Copyright (c) 2024 Michael D Henderson. All rights reserved.
+ */
+
 -- MyBB Database Backup
 -- Generated: 31st July 2024 at 17:42
 -- -------------------------------------

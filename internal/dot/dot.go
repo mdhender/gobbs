@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Michael D Henderson. All rights reserved.
+// Copyright (c) 2023-2024 Michael D Henderson. All rights reserved.
 
 // Package dot implements a wrapper around John Barton's package for loading dot files.
 package dot

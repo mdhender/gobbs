@@ -1,4 +1,6 @@
 
+--  Copyright (c) 2024 Michael D Henderson. All rights reserved.
+
 -- name: GetUserFields :one
 SELECT u.*, f.*
 FROM users u

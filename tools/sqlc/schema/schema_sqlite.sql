@@ -1,3 +1,9 @@
+--  Copyright (c) 2024 Michael D Henderson. All rights reserved.
+
+/*
+ * Copyright (c) 2024 Michael D Henderson. All rights reserved.
+ */
+
 -- foreign keys must be disabled to drop tables with foreign keys
 PRAGMA foreign_keys = OFF;
 
