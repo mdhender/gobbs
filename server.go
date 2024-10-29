@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/mdhender/gobbs/app"
 	"github.com/mdhender/gobbs/internal/domains"
 	"log"
 	"net"
@@ -39,7 +40,7 @@ func newServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	s.Handler = s.Routes()
+	s.Handler = app.Routes(s.BaseURL(), s.paths.assets, s.paths.components, s.admin.keys.shutdown, s.admin.stop)
 
 	return s, nil
 }
@@ -63,10 +64,6 @@ type Server struct {
 
 func (s *Server) BaseURL() string {
 	return fmt.Sprintf("%s://%s", s.scheme, s.Addr)
-}
-
-func (s *Server) PrintAdminRoutes() {
-	log.Printf("shutdown server: %s/admin/shutdown-server/%s\n", s.BaseURL(), s.admin.keys.shutdown)
 }
 
 func (s *Server) Serve() error {

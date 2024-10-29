@@ -1,27 +1,11 @@
 // Copyright (c) 2024 Michael D Henderson. All rights reserved.
 
-package main
+package app
 
 import (
 	"net/http"
 	"slices"
 )
-
-func (s *Server) Routes() http.Handler {
-	r := NewRouter()
-
-	r.Get("/about-us", s.servePage("/about-us.html"))
-	r.Get("/admin/shutdown-server/{key}", s.serveAdminShutdownServer(s.admin.keys.shutdown))
-
-	r.Get("/index.php", s.getIndex(s.paths.components))
-	r.Get("/showthread.php", s.getShowthread(s.paths.components))
-	r.Get("/task.php", s.getTasks())
-
-	// serve assets, redirecting "/" to the index page.
-	r.Get("/", s.serveAssets(s.paths.assets, true, "/index.php"))
-
-	return r
-}
 
 // implement a chi-like router based on a gist from alexandru
 

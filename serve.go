@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/mdhender/gobbs/app"
 	"github.com/spf13/cobra"
 	"log"
 	"path/filepath"
@@ -75,7 +76,7 @@ var (
 			if err != nil {
 				log.Fatalf("error: %v\n", err)
 			}
-			s.PrintAdminRoutes()
+			app.PrintAdminRoutes(s.BaseURL(), s.admin.keys.shutdown)
 			if err = s.Serve(); err != nil {
 				log.Fatalf("server: %v\n", err)
 			}

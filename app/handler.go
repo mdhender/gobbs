@@ -1,12 +1,11 @@
 // Copyright (c) 2024 Michael D Henderson. All rights reserved.
 
-package main
+package app
 
 import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -17,7 +16,7 @@ import (
 )
 
 // getIndex serves the index page.
-func (s *Server) getIndex(components string) func(http.ResponseWriter, *http.Request) {
+func getIndex(components string) func(http.ResponseWriter, *http.Request) {
 	files := []string{
 		filepath.Join(components, "index.gohtml"),
 	}
@@ -28,21 +27,21 @@ func (s *Server) getIndex(components string) func(http.ResponseWriter, *http.Req
 		var fragments [][]byte
 
 		var payload string
-		if frag, err := s.renderFragment(payload, "index.php", files...); err != nil {
+		if frag, err := renderFragment(payload, "index.php", files...); err != nil {
 			log.Printf("%s %s: %v\n", r.Method, r.URL.Path, err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		} else {
 			fragments = append(fragments, frag)
 		}
 
-		if _, err := s.writeFragments(w, r, fragments...); err != nil {
+		if _, err := writeFragments(w, r, fragments...); err != nil {
 			log.Printf("%s %s: %v\n", r.Method, r.URL.Path, err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
 }
 
-func (s *Server) getShowthread(components string) func(http.ResponseWriter, *http.Request) {
+func getShowthread(components string) func(http.ResponseWriter, *http.Request) {
 	files := []string{
 		filepath.Join(components, "showthread.gohtml"),
 	}
@@ -63,14 +62,14 @@ func (s *Server) getShowthread(components string) func(http.ResponseWriter, *htt
 		var fragments [][]byte
 
 		var payload string
-		if frag, err := s.renderFragment(payload, "showthread.php", files...); err != nil {
+		if frag, err := renderFragment(payload, "showthread.php", files...); err != nil {
 			log.Printf("%s %s: %v\n", r.Method, r.URL.Path, err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		} else {
 			fragments = append(fragments, frag)
 		}
 
-		if _, err := s.writeFragments(w, r, fragments...); err != nil {
+		if _, err := writeFragments(w, r, fragments...); err != nil {
 			log.Printf("%s %s: %v\n", r.Method, r.URL.Path, err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
@@ -79,7 +78,7 @@ func (s *Server) getShowthread(components string) func(http.ResponseWriter, *htt
 
 // getTasks was used by MyBB to initiate background tasks.
 // it is currently a no-op.
-func (s *Server) getTasks() func(http.ResponseWriter, *http.Request) {
+func getTasks() func(http.ResponseWriter, *http.Request) {
 	log.Printf("getTasks: not implemented\n")
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -88,9 +87,8 @@ func (s *Server) getTasks() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func (s *Server) serveAdminShutdownServer(key string) func(http.ResponseWriter, *http.Request) {
+func serveAdminShutdownServer(key string, stop chan os.Signal) func(http.ResponseWriter, *http.Request) {
 	keyHash := sha256.Sum256([]byte(key))
-	log.Printf("server: %s/admin/shutdown-server/%s", s.BaseURL(), key)
 	return func(w http.ResponseWriter, r *http.Request) {
 		argHash := sha256.Sum256([]byte(r.PathValue("key")))
 		if !bytes.Equal(keyHash[:], argHash[:]) {
@@ -99,7 +97,7 @@ func (s *Server) serveAdminShutdownServer(key string) func(http.ResponseWriter, 
 		}
 		log.Printf("%s %s: initiating shutdown\n", r.Method, r.URL.Path)
 
-		s.admin.stop <- syscall.SIGTERM
+		stop <- syscall.SIGTERM
 
 		// important: calling http.Error() will close the connection and allow us to gracefully shut down the server.
 		http.Error(w, "By your command, server is shutting down", http.StatusServiceUnavailable)
@@ -107,9 +105,9 @@ func (s *Server) serveAdminShutdownServer(key string) func(http.ResponseWriter, 
 }
 
 // serveAssets returns a handler that uses http.ServeContent to serve files in the assets directory.
-// As we all know, Go treats the "/" path as a wild-card. If we see it here, we
-// smile, not, and send the client off to fetch the index page.
-func (s *Server) serveAssets(assets string, debugAssets bool, indexPage string) http.HandlerFunc {
+// As we all know, Go treats the "/" path as a wild-card. If we see it here, we smile, nod, and send
+// the client off to fetch the index page.
+func serveAssets(assets string, debugAssets bool, indexPage string) http.HandlerFunc {
 	if ok, _ := isDirExists(assets); !ok {
 		log.Printf("assets %q: is not a directory\n", assets)
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -155,12 +153,12 @@ func (s *Server) serveAssets(assets string, debugAssets bool, indexPage string) 
 
 // servePage serves a page from the file system.
 // path must be the full path to the page to serve or relative to the server's working directory.
-func (s *Server) servePage(path string) func(http.ResponseWriter, *http.Request) {
+func servePage(assets, page string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s: page %v\n", r.Method, r.URL.Path, path)
+		log.Printf("%s %s: page %v\n", r.Method, r.URL.Path, page)
 
 		// only serve files, never directories
-		sb, err := os.Stat(path)
+		sb, err := os.Stat(filepath.Join(assets, page))
 		if err != nil {
 			if !errors.Is(err, os.ErrNotExist) {
 				log.Printf("%s %s: %v\n", r.Method, r.URL.Path, err)
@@ -174,7 +172,7 @@ func (s *Server) servePage(path string) func(http.ResponseWriter, *http.Request)
 		log.Printf("%s %s: mod %v\n", r.Method, r.URL.Path, sb.ModTime())
 
 		// we have to open the file ourselves, because ServeContent doesn't support serving from a file
-		fp, err := os.Open(path)
+		fp, err := os.Open(filepath.Join(assets, page))
 		if err != nil {
 			log.Printf("%s %s: %v\n", r.Method, r.URL.Path, err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -186,39 +184,4 @@ func (s *Server) servePage(path string) func(http.ResponseWriter, *http.Request)
 		// let ServeContent do the rest, including setting the Content-Type header
 		http.ServeContent(w, r, r.URL.Path, sb.ModTime(), fp)
 	}
-}
-
-func (s *Server) renderFragment(payload any, templateName string, templateFiles ...string) ([]byte, error) {
-	t, err := template.ParseFiles(templateFiles...)
-	if err != nil {
-		log.Printf("%s: %v\n", templateName, err)
-		return nil, err
-	}
-
-	buf := &bytes.Buffer{}
-	if err := t.ExecuteTemplate(buf, templateName, payload); err != nil {
-		log.Printf("%s: %v\n", templateName, err)
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-// writeFragments writes the fragments to the response.
-// any errors returned need to be handled by the caller.
-// note that the caller should call http.Error() to close
-// the connection if there is an error writing, but the
-// header and any prior fragment writes have already been
-// sent to the client.
-func (s *Server) writeFragments(w http.ResponseWriter, r *http.Request, fragments ...[]byte) (bytesWritten int, err error) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	for _, fragment := range fragments {
-		n, err := w.Write(fragment)
-		if err != nil {
-			return bytesWritten, err
-		}
-		bytesWritten += n
-	}
-	return bytesWritten, nil
 }
