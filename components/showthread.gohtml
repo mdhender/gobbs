@@ -1,0 +1,1185 @@
+{{define "showthread.php"}}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><!-- start: showthread -->
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Hey. zoomer lookin to get into PBM here</title>
+    <!-- start: headerinclude -->
+    <link rel="alternate" type="application/rss+xml" title="Latest Threads (RSS 2.0)" href="/syndication.php" />
+    <link rel="alternate" type="application/atom+xml" title="Latest Threads (Atom 1.0)" href="/syndication.php?type=atom1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Script-Type" content="text/javascript" />
+    <script type="text/javascript" src="/jscripts/jquery.js?ver=1823"></script>
+    <script type="text/javascript" src="/jscripts/jquery.plugins.min.js?ver=1821"></script>
+    <script type="text/javascript" src="/jscripts/general.js?ver=1827"></script>
+
+    <link type="text/css" rel="stylesheet" href="/cache/themes/theme1/global.css?t=1700075346" />
+    <link type="text/css" rel="stylesheet" href="/cache/themes/theme1/star_ratings.css?t=1700075346" />
+    <link type="text/css" rel="stylesheet" href="/cache/themes/theme1/showthread.css?t=1700075346" />
+    <link type="text/css" rel="stylesheet" href="/cache/themes/theme1/css3.css?t=1700075346" />
+
+    <script type="text/javascript">
+        <!--
+        lang.unknown_error = "An unknown error has occurred.";
+        lang.confirm_title = "Please Confirm";
+        lang.expcol_collapse = "[-]";
+        lang.expcol_expand = "[+]";
+        lang.select2_match = "One result is available, press enter to select it.";
+        lang.select2_matches = "{1} results are available, use up and down arrow keys to navigate.";
+        lang.select2_nomatches = "No matches found";
+        lang.select2_inputtooshort_single = "Please enter one or more character";
+        lang.select2_inputtooshort_plural = "Please enter {1} or more characters";
+        lang.select2_inputtoolong_single = "Please delete one character";
+        lang.select2_inputtoolong_plural = "Please delete {1} characters";
+        lang.select2_selectiontoobig_single = "You can only select one item";
+        lang.select2_selectiontoobig_plural = "You can only select {1} items";
+        lang.select2_loadmore = "Loading more results&hellip;";
+        lang.select2_searching = "Searching&hellip;";
+
+        var templates = {
+            modal: '<div class=\"modal\">\
+	<div style=\"overflow-y: auto; max-height: 400px;\">\
+		<table border=\"0\" cellspacing=\"0\" cellpadding=\"5\" class=\"tborder\">\
+			<tr>\
+				<td class=\"thead\"><strong>__title__</strong></td>\
+			</tr>\
+			<tr>\
+				<td class=\"trow1\">__message__</td>\
+			</tr>\
+			<tr>\
+				<td class=\"tfoot\">\
+					<div style=\"text-align: center\" class=\"modal_buttons\">__buttons__</div>\
+				</td>\
+			</tr>\
+		</table>\
+	</div>\
+</div>',
+            modal_button: '<input type=\"submit\" class=\"button\" value=\"__title__\"/>&nbsp;'
+        };
+
+        var cookieDomain = ".forums.playbymail.dev";
+        var cookiePath = "/";
+        var cookiePrefix = "forums-";
+        var cookieSecureFlag = "0";
+        var deleteevent_confirm = "Are you sure you want to delete this event?";
+        var removeattach_confirm = "Are you sure you want to remove the selected attachment from this post?";
+        var loading_text = 'Loading. <br />Please Wait&hellip;';
+        var saving_changes = 'Saving changes&hellip;';
+        var use_xmlhttprequest = "1";
+        var my_post_key = "b806142a8cde10684687b73eba8e3c8a";
+        var rootpath = "";
+        var imagepath = "/images";
+        var yes_confirm = "Yes";
+        var no_confirm = "No";
+        var MyBBEditor = null;
+        var spinner_image = "/images/spinner.gif";
+        var spinner = "<img src='" + spinner_image +"' alt='' />";
+        var modal_zindex = 9999;
+        // -->
+    </script>
+    <!-- end: headerinclude -->
+    <script type="text/javascript">
+        <!--
+        var quickdelete_confirm = "Are you sure you want to delete this post?";
+        var quickrestore_confirm = "Are you sure you want to restore this post?";
+        var allowEditReason = "1";
+        lang.save_changes = "Save Changes";
+        lang.cancel_edit = "Cancel Edit";
+        lang.quick_edit_update_error = "There was an error editing your reply:";
+        lang.quick_reply_post_error = "There was an error posting your reply:";
+        lang.quick_delete_error = "There was an error deleting your reply:";
+        lang.quick_delete_success = "The post was deleted successfully.";
+        lang.quick_delete_thread_success = "The thread was deleted successfully.";
+        lang.quick_restore_error = "There was an error restoring your reply:";
+        lang.quick_restore_success = "The post was restored successfully.";
+        lang.editreason = "Edit Reason";
+        lang.post_deleted_error = "You can not perform this action to a deleted post.";
+        lang.softdelete_thread = "Soft Delete Thread";
+        lang.restore_thread = "Restore Thread";
+        // -->
+    </script>
+    <!-- jeditable (jquery) -->
+    <script type="text/javascript" src="/jscripts/report.js?ver=1820"></script>
+    <script src="/jscripts/jeditable/jeditable.min.js"></script>
+    <script type="text/javascript" src="/jscripts/thread.js?ver=1827"></script>
+</head>
+<body>
+<!-- start: header -->
+<div id="container">
+    <a name="top" id="top"></a>
+    <div id="header">
+        <div id="logo">
+            <div class="wrapper">
+                <a href="/index.php"><img src="/images/logo.gif" alt="PlayByMail Forums" title="PlayByMail Forums" /></a>
+                <ul class="menu top_links">
+                    <!-- start: header_menu_portal -->
+                    <li><a href="/portal.php" class="portal">Portal</a></li>
+                    <!-- end: header_menu_portal -->
+                    <!-- start: header_menu_search -->
+                    <li><a href="/search.php" class="search">Search</a></li>
+                    <!-- end: header_menu_search -->
+                    <!-- start: header_menu_memberlist -->
+                    <li><a href="/memberlist.php" class="memberlist">Member List</a></li>
+                    <!-- end: header_menu_memberlist -->
+                    <!-- start: header_menu_calendar -->
+                    <li><a href="/calendar.php" class="calendar">Calendar</a></li>
+                    <!-- end: header_menu_calendar -->
+                    <li><a href="/misc.php?action=help" class="help">Help</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="panel">
+            <div class="upper">
+                <div class="wrapper">
+                    <!-- start: header_quicksearch -->
+                    <form action="/search.php">
+                        <fieldset id="search">
+                            <input name="keywords" type="text" class="textbox" />
+                            <input value="Search" type="submit" class="button" />
+                            <input type="hidden" name="action" value="do_search" />
+                            <input type="hidden" name="postthread" value="1" />
+                        </fieldset>
+                    </form>
+                    <!-- end: header_quicksearch -->
+                    <!-- start: header_welcomeblock_guest -->
+                    <!-- Continuation of div(class="upper") as opened in the header template -->
+                    <span class="welcome">Hello There, Guest! <a href="/member.php?action=login" onclick="$('#quick_login').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;" class="login">Login</a> <a href="/member.php?action=register" class="register">Register</a></span>
+                </div>
+            </div>
+            <div class="modal" id="quick_login" style="display: none;">
+                <form method="post" action="/member.php">
+                    <input name="action" type="hidden" value="do_login" />
+                    <input name="url" type="hidden" value="" />
+                    <input name="quick_login" type="hidden" value="1" />
+                    <input name="my_post_key" type="hidden" value="b806142a8cde10684687b73eba8e3c8a" />
+                    <table width="100%" cellspacing="0" cellpadding="5" border="0" class="tborder">
+                        <tr>
+                            <td class="thead" colspan="2"><strong>Login</strong></td>
+                        </tr>
+                        <!-- start: header_welcomeblock_guest_login_modal -->
+                        <tr>
+                            <td class="trow1" width="25%"><strong>Username:</strong></td>
+                            <td class="trow1"><input name="quick_username" id="quick_login_username" type="text" value="" class="textbox initial_focus" /></td>
+                        </tr>
+                        <tr>
+                            <td class="trow2"><strong>Password:</strong></td>
+                            <td class="trow2">
+                                <input name="quick_password" id="quick_login_password" type="password" value="" class="textbox" /><br />
+                                <a href="/member.php?action=lostpw" class="lost_password">Lost Password?</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="trow1">&nbsp;</td>
+                            <td class="trow1 remember_me">
+                                <input name="quick_remember" id="quick_login_remember" type="checkbox" value="yes" class="checkbox" checked="checked" />
+                                <label for="quick_login_remember">Remember me</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="trow2" colspan="2">
+                                <div align="center"><input name="submit" type="submit" class="button" value="Login" /></div>
+                            </td>
+                        </tr>
+                        <!-- end: header_welcomeblock_guest_login_modal -->
+                    </table>
+                </form>
+            </div>
+            <script type="text/javascript">
+                $("#quick_login input[name='url']").val($(location).attr('href'));
+            </script>
+            <!-- end: header_welcomeblock_guest -->
+            <!-- </div> in header_welcomeblock_member and header_welcomeblock_guest -->
+            <!-- </div> in header_welcomeblock_member and header_welcomeblock_guest -->
+        </div>
+    </div>
+    <div id="content">
+        <div class="wrapper">
+
+
+
+
+
+
+
+            <!-- start: nav -->
+
+            <div class="navigation">
+                <!-- start: nav_bit -->
+                <a href="/index.php">PlayByMail Forums</a><!-- start: nav_sep -->
+                &rsaquo;
+                <!-- end: nav_sep -->
+                <!-- end: nav_bit --><!-- start: nav_bit -->
+                <a href="forumdisplay.php?fid=65">New To PBM Gaming</a><!-- start: nav_sep -->
+                &rsaquo;
+                <!-- end: nav_sep -->
+                <!-- end: nav_bit --><!-- start: nav_bit -->
+                <a href="forumdisplay.php?fid=3">New to the site? Introduce Yourself</a><!-- start: nav_dropdown -->
+                <img src="/images/arrow_down.png" alt="v" title="" class="pagination_breadcrumb_link" id="breadcrumb_multipage" /><!-- start: multipage_breadcrumb -->
+                <div id="breadcrumb_multipage_popup" class="pagination pagination_breadcrumb" style="display: none;">
+                    <!-- start: multipage_page_link_current -->
+                    <a href="forumdisplay.php?fid=3" class="pagination_current">1</a>
+                    <!-- end: multipage_page_link_current --><!-- start: multipage_page -->
+                    <a href="forumdisplay.php?fid=3&page=2" class="pagination_page">2</a>
+                    <!-- end: multipage_page --><!-- start: multipage_page -->
+                    <a href="forumdisplay.php?fid=3&page=3" class="pagination_page">3</a>
+                    <!-- end: multipage_page --><!-- start: multipage_nextpage -->
+                    <a href="forumdisplay.php?fid=3&page=2" class="pagination_next">Next &raquo;</a>
+                    <!-- end: multipage_nextpage -->
+                </div>
+                <script type="text/javascript">
+                    // <!--
+                    if(use_xmlhttprequest == "1")
+                    {
+                        $("#breadcrumb_multipage").popupMenu();
+                    }
+                    // -->
+                </script>
+                <!-- end: multipage_breadcrumb -->
+                <!-- end: nav_dropdown -->
+                <!-- end: nav_bit --><!-- start: nav_sep_active -->
+                <br /><img src="/images/nav_bit.png" alt="" />
+                <!-- end: nav_sep_active --><!-- start: nav_bit_active -->
+                <span class="active">Hey. zoomer lookin to get into PBM here</span>
+                <!-- end: nav_bit_active -->
+            </div>
+            <!-- end: nav -->
+            <br />
+            <!-- end: header -->
+
+
+            <div class="float_left">
+
+            </div>
+            <div class="float_right">
+
+            </div>
+            <!-- start: showthread_ratethread -->
+            <div style="margin-top: 6px; padding-right: 10px;" class="float_right">
+                <script type="text/javascript">
+                    <!--
+                    lang.ratings_update_error = "There was an error updating the rating.";
+                    // -->
+                </script>
+                <script type="text/javascript" src="/jscripts/rating.js?ver=1821"></script>
+                <div class="inline_rating">
+                    <strong class="float_left" style="padding-right: 10px;">Thread Rating:</strong>
+                    <ul class="star_rating star_rating_notrated" id="rating_thread_130855">
+                        <li style="width: 0%" class="current_rating" id="current_rating_130855">0 Vote(s) - 0 Average</li>
+                        <li><a class="one_star" title="1 star out of 5" href="./ratethread.php?tid=130855&rating=1&my_post_key=b806142a8cde10684687b73eba8e3c8a">1</a></li>
+                        <li><a class="two_stars" title="2 stars out of 5" href="./ratethread.php?tid=130855&rating=2&my_post_key=b806142a8cde10684687b73eba8e3c8a">2</a></li>
+                        <li><a class="three_stars" title="3 stars out of 5" href="./ratethread.php?tid=130855&rating=3&my_post_key=b806142a8cde10684687b73eba8e3c8a">3</a></li>
+                        <li><a class="four_stars" title="4 stars out of 5" href="./ratethread.php?tid=130855&rating=4&my_post_key=b806142a8cde10684687b73eba8e3c8a">4</a></li>
+                        <li><a class="five_stars" title="5 stars out of 5" href="./ratethread.php?tid=130855&rating=5&my_post_key=b806142a8cde10684687b73eba8e3c8a">5</a></li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end: showthread_ratethread -->
+            <table border="0" cellspacing="0" cellpadding="5" class="tborder tfixed clear">
+                <tr>
+                    <td class="thead">
+                        <div class="float_right">
+                            <span class="smalltext"><strong><a href="showthread.php?mode=threaded&tid=130855&pid=138816#pid138816">Threaded Mode</a></strong></span>
+                        </div>
+                        <div>
+                            <strong>Hey. zoomer lookin to get into PBM here</strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr><td id="posts_container">
+                        <div id="posts">
+                            <!-- start: postbit -->
+
+                            <a name="pid138808" id="pid138808"></a>
+                            <div class="post " style="" id="post_138808">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=2164"><img src="/images/default_avatar.png" alt="" width="50" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=2164">Alena_03</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Junior Member<br />
+				<img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 3<br />
+                                        Threads: 1<br />
+                                        Joined: May 2024
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=2164"><strong class="reputation_neutral">0</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138808#pid138808" title="Hey. zoomer lookin to get into PBM here">#1</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+                                        <!-- start: postbit_icon -->
+                                        <img src="images/icons/rainbow.png" alt="Rainbow" title="Rainbow" style="vertical-align: middle;" />&nbsp;
+                                        <!-- end: postbit_icon -->
+                                        <span class="post_date">05-25-2024, 01:52 AM <span class="post_edit" id="edited_by_138808"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138808">
+                                        Hi! I am Alena, she/her, a transfem 20 year old. Hoping to play Empire: Wargame of the Century with any of you. I'll leave this brief and succinct
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138808">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=2164" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138808" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138809" id="pid138809"></a>
+                            <div class="post " style="" id="post_138809">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=1"><img src="/uploads/avatars/avatar_1.png?dateline=1412943251" alt="" width="50" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=1"><span style="color: green;"><strong><em>GrimFinger</em></strong></span></a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Administrator<br />
+				<img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 1,475<br />
+                                        Threads: 340<br />
+                                        Joined: Jan 2011
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=1"><strong class="reputation_positive">9</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138809#pid138809" title="RE: Hey. zoomer lookin to get into PBM here">#2</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">05-25-2024, 07:48 AM <span class="post_edit" id="edited_by_138809"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138809">
+                                        <blockquote class="mycode_quote"><cite><span> (05-25-2024, 01:52 AM)</span>Alena_03 Wrote:  <a href="/showthread.php?pid=138808#pid138808" class="quick_jump"></a></cite>Hi! I am Alena, she/her, a transfem 20 year old. Hoping to play Empire: Wargame of the Century with any of you. I'll leave this brief and succinct</blockquote><br />
+                                        Hi, Alena. I've never played it.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138809">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=1" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138809" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138810" id="pid138810"></a>
+                            <div class="post " style="" id="post_138810">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=2164"><img src="/images/default_avatar.png" alt="" width="50" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=2164">Alena_03</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Junior Member<br />
+				<img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 3<br />
+                                        Threads: 1<br />
+                                        Joined: May 2024
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=2164"><strong class="reputation_neutral">0</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138810#pid138810" title="RE: Hey. zoomer lookin to get into PBM here">#3</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">05-25-2024, 04:54 PM <span class="post_edit" id="edited_by_138810"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138810">
+                                        <blockquote class="mycode_quote"><cite><span> (05-25-2024, 07:48 AM)</span>GrimFinger Wrote:  <a href="/showthread.php?pid=138809#pid138809" class="quick_jump"></a></cite><blockquote class="mycode_quote"><cite><span> (05-25-2024, 01:52 AM)</span>Alena_03 Wrote:  <a href="/showthread.php?pid=138808#pid138808" class="quick_jump"></a></cite>Hi! I am Alena, she/her, a transfem 20 year old. Hoping to play Empire: Wargame of the Century with any of you. I'll leave this brief and succinct</blockquote><br />
+                                            Hi, Alena. I've never played it.</blockquote><br />
+                                        The original 4X game. The inspiration for Civilization.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138810">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=2164" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138810" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138811" id="pid138811"></a>
+                            <div class="post " style="" id="post_138811">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=1"><img src="/uploads/avatars/avatar_1.png?dateline=1412943251" alt="" width="50" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=1"><span style="color: green;"><strong><em>GrimFinger</em></strong></span></a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Administrator<br />
+				<img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 1,475<br />
+                                        Threads: 340<br />
+                                        Joined: Jan 2011
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=1"><strong class="reputation_positive">9</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138811#pid138811" title="RE: Hey. zoomer lookin to get into PBM here">#4</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">05-25-2024, 06:51 PM <span class="post_edit" id="edited_by_138811"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138811">
+                                        I looked it up. I have heard of it before, long ago, in fact. Just never played it.<br />
+                                        <br />
+                                        I used to play Command H.Q. by Microprose, back in the day, but not the game that you are referring to.<br />
+                                        <br />
+                                        I can try to ask, and see if anybody else that I communicate with has played it.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138811">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=1" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138811" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138812" id="pid138812"></a>
+                            <div class="post " style="" id="post_138812">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=703"><img src="/images/avatars/clear_avatar.gif?dateline=1472948313" alt="" width="1" height="1" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=703">Davin</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Talisman Games<br />
+				<img src="images/alien.gif" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 656<br />
+                                        Threads: 32<br />
+                                        Joined: Mar 2014
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=703"><strong class="reputation_positive">11</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138812#pid138812" title="RE: Hey. zoomer lookin to get into PBM here">#5</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">05-30-2024, 03:04 AM <span class="post_edit" id="edited_by_138812"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138812">
+                                        <blockquote class="mycode_quote"><cite><span> (05-25-2024, 01:52 AM)</span>Alena_03 Wrote:  <a href="/showthread.php?pid=138808#pid138808" class="quick_jump"></a></cite>Hi! I am Alena, she/her, a transfem 20 year old. Hoping to play Empire: Wargame of the Century with any of you. I'll leave this brief and succinct</blockquote><br />
+                                        Actually, I remember playing that game ages ago on a friend's computer. It was pretty fun.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138812">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_www -->
+                                        <a href="http://www.talisman-games.com" target="_blank" rel="noopener" title="Visit this user's website" class="postbit_website"><span>Website</span></a>
+                                        <!-- end: postbit_www --><!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=703" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138812" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138813" id="pid138813"></a>
+                            <div class="post " style="" id="post_138813">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=2164"><img src="/images/default_avatar.png" alt="" width="50" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=2164">Alena_03</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Junior Member<br />
+				<img src="images/star.png" border="0" alt="*" /><img src="images/star.png" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 3<br />
+                                        Threads: 1<br />
+                                        Joined: May 2024
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=2164"><strong class="reputation_neutral">0</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138813#pid138813" title="RE: Hey. zoomer lookin to get into PBM here">#6</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">06-08-2024, 04:15 AM <span class="post_edit" id="edited_by_138813"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138813">
+                                        would you like to?<blockquote class="mycode_quote"><cite><span> (05-30-2024, 03:04 AM)</span>Davin Wrote:  <a href="/showthread.php?pid=138812#pid138812" class="quick_jump"></a></cite><blockquote class="mycode_quote"><cite><span> (05-25-2024, 01:52 AM)</span>Alena_03 Wrote:  <a href="/showthread.php?pid=138808#pid138808" class="quick_jump"></a></cite>Hi! I am Alena, she/her, a transfem 20 year old. Hoping to play Empire: Wargame of the Century with any of you. I'll leave this brief and succinct</blockquote><br />
+                                            Actually, I remember playing that game ages ago on a friend's computer. It was pretty fun.</blockquote>
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138813">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=2164" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138813" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138814" id="pid138814"></a>
+                            <div class="post " style="" id="post_138814">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=703"><img src="/images/avatars/clear_avatar.gif?dateline=1472948313" alt="" width="1" height="1" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=703">Davin</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Talisman Games<br />
+				<img src="images/alien.gif" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 656<br />
+                                        Threads: 32<br />
+                                        Joined: Mar 2014
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=703"><strong class="reputation_positive">11</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138814#pid138814" title="RE: Hey. zoomer lookin to get into PBM here">#7</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">06-09-2024, 02:29 AM <span class="post_edit" id="edited_by_138814"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138814">
+                                        I don't have the game - it was on a friend's Amiga ages ago and that's long gone. I always played it solo against the computer so I don't even know how to play against someone else not in the same room.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138814">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_www -->
+                                        <a href="http://www.talisman-games.com" target="_blank" rel="noopener" title="Visit this user's website" class="postbit_website"><span>Website</span></a>
+                                        <!-- end: postbit_www --><!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=703" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138814" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138815" id="pid138815"></a>
+                            <div class="post " style="" id="post_138815">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=706"><img src="/uploads/avatars/avatar_706.jpeg?dateline=1401072920" alt="" width="34" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=706">Tregonsee</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Duke of Brunswick<br />
+				<img src="images/alien.gif" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 98<br />
+                                        Threads: 1<br />
+                                        Joined: Apr 2014
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=706"><strong class="reputation_positive">2</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138815#pid138815" title="RE: Hey. zoomer lookin to get into PBM here">#8</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">10-26-2024, 11:13 PM <span class="post_edit" id="edited_by_138815"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138815">
+                                        I was the original playtester of Empire.  Walter Bright was my Boy Scout Patrol Leader and we played it on a large plywood board with pegs and Risk pieces.  I still have the pegs in the house somewhere.   I also played it on the Amiga and Amiga 1200.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138815">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=706" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138815" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit --><!-- start: postbit -->
+
+                            <a name="pid138816" id="pid138816"></a>
+                            <div class="post " style="" id="post_138816">
+                                <div class="post_author">
+                                    <!-- start: postbit_avatar -->
+                                    <div class="author_avatar"><a href="member.php?action=profile&uid=706"><img src="/uploads/avatars/avatar_706.jpeg?dateline=1401072920" alt="" width="34" height="50" /></a></div>
+                                    <!-- end: postbit_avatar -->
+                                    <div class="author_information">
+                                        <strong><span class="largetext"><a href="/member.php?action=profile&uid=706">Tregonsee</a></span></strong> <!-- start: postbit_offline -->
+                                        <img src="/images/buddy_offline.png" title="Offline" alt="Offline" class="buddy_status" />
+                                        <!-- end: postbit_offline --><br />
+                                        <span class="smalltext">
+				Duke of Brunswick<br />
+				<img src="images/alien.gif" border="0" alt="*" /><br />
+
+			</span>
+                                    </div>
+                                    <div class="author_statistics">
+                                        <!-- start: postbit_author_user -->
+
+                                        Posts: 98<br />
+                                        Threads: 1<br />
+                                        Joined: Apr 2014
+                                        <!-- start: postbit_reputation -->
+                                        <br />Reputation: <!-- start: postbit_reputation_formatted_link -->
+                                        <a href="reputation.php?uid=706"><strong class="reputation_positive">2</strong></a>
+                                        <!-- end: postbit_reputation_formatted_link -->
+                                        <!-- end: postbit_reputation -->
+                                        <!-- end: postbit_author_user -->
+                                    </div>
+                                </div>
+                                <div class="post_content">
+                                    <div class="post_head">
+                                        <!-- start: postbit_posturl -->
+                                        <div class="float_right" style="vertical-align: top">
+                                            <strong><a href="showthread.php?tid=130855&pid=138816#pid138816" title="RE: Hey. zoomer lookin to get into PBM here">#9</a></strong>
+
+                                        </div>
+                                        <!-- end: postbit_posturl -->
+
+                                        <span class="post_date">10-26-2024, 11:19 PM <span class="post_edit" id="edited_by_138816"></span></span>
+
+                                    </div>
+                                    <div class="post_body scaleimages" id="pid_138816">
+                                        I was the original playtester of Empire.  Walter Bright was my Boy Scout Patrol Leader and we played it on a large plywood board with pegs and Risk pieces.  I still have the pegs in the house somewhere.   I also played it on the Amiga and Amiga 1200.
+                                    </div>
+
+
+                                    <div class="post_meta" id="post_meta_138816">
+
+                                        <div class="float_right">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="post_controls">
+                                    <div class="postbit_buttons author_buttons float_left">
+                                        <!-- start: postbit_find -->
+                                        <a href="search.php?action=finduser&uid=706" title="Find all posts by this user" class="postbit_find"><span>Find</span></a>
+                                        <!-- end: postbit_find -->
+                                    </div>
+                                    <div class="postbit_buttons post_management_buttons float_right">
+                                        <!-- start: postbit_quote -->
+                                        <a href="newreply.php?tid=130855&replyto=138816" title="Quote this message in a reply" class="postbit_quote postbit_mirage"><span>Reply</span></a>
+                                        <!-- end: postbit_quote -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- end: postbit -->
+                        </div>
+                    </td></tr>
+                <tr>
+                    <td class="tfoot">
+                        <!-- start: showthread_search -->
+                        <div class="float_right">
+                            <form action="search.php" method="post">
+                                <input type="hidden" name="action" value="thread" />
+                                <input type="hidden" name="tid" value="130855" />
+                                <input type="text" name="keywords" value="Enter Keywords" onfocus="if(this.value == 'Enter Keywords') { this.value = ''; }" onblur="if(this.value=='') { this.value='Enter Keywords'; }" class="textbox" size="25" />
+                                <input type="submit" class="button" value="Search Thread" />
+                            </form>
+                        </div>
+                        <!-- end: showthread_search -->
+                        <div>
+                            <strong>&laquo; <a href="showthread.php?tid=130855&action=nextoldest">Next Oldest</a> | <a href="showthread.php?tid=130855&action=nextnewest">Next Newest</a> &raquo;</strong>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="float_left">
+
+            </div>
+            <div style="padding-top: 4px;" class="float_right">
+
+            </div>
+            <br class="clear" />
+
+
+
+            <br />
+            <div class="float_left">
+                <ul class="thread_tools">
+                    <!-- start: showthread_printthread -->
+                    <li class="printable"><a href="printthread.php?tid=130855">View a Printable Version</a></li>
+                    <!-- end: showthread_printthread -->
+
+
+
+                </ul>
+            </div>
+
+            <div class="float_right" style="text-align: right;">
+
+                <!-- start: forumjump_advanced -->
+                <form action="forumdisplay.php" method="get">
+                    <span class="smalltext"><strong>Forum Jump:</strong></span>
+                    <select name="fid" class="forumjump">
+                        <option value="-4">Private Messages</option>
+                        <option value="-3">User Control Panel</option>
+                        <option value="-5">Who's Online</option>
+                        <option value="-2">Search</option>
+                        <option value="-1">Forum Home</option>
+                        <!-- start: forumjump_bit -->
+                        <option value="65" > New To PBM Gaming</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="3" selected="selected">-- New to the site? Introduce Yourself</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="54" >-- PBM List and PBM Rulebook Library</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="59" > Featured PBM Games</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="61" >-- Galac-Tac</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="51" > PBM Chaos</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="63" >-- Articles that appeared in issues of PBM Chaos</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="64" >-- Games Played Via Issues Of PBM Chaos</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="67" >---- The PBM Maze</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="58" >---- PBMville Town Saloon</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="49" > PBM Unearthed</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="37" > Suspense &amp; Decision</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="17" >-- Issues of S&amp;D</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="5" >-- Editorials</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="10" >-- Interviews</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="7" >-- Game Reviews</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="46" >-- Designers Notes</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="36" > PlayByMail.Net</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="2" >-- News &amp; Announcements</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="8" >-- Website Related</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="18" >-- PBM Wiki</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="39" >-- Advertisements from PBM Companies and Game Moderators</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="35" >-- Submit your ideas!</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="1" > Play-By-Mail Games</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="4" >-- Games</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="62" >---- Diplomacy</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="45" >---- Far Horizons: The Return</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="48" >---- KnightGuild</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="44" >---- Midgard</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="42" >---- The Isles PBM</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="43" >---- Dungeonworld</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="28" >---- Galac-Tac</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="40" >---- Middle-earth</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="33" >---- Quest of the Great Jewels</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="34" >---- Clash of Legends</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="27" >---- Alamaze</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="29" >---- Hyborian War</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="24" >---- Phoenix: Beyond the Stellar Empire</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="41" >---- SuperNova</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="20" >---- TribeNet</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="25" >---- Takamo</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="26" >---- Nuclear Destruction</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="23" >---- Olympia</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="21" >---- Fallen Empires PBE</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="16" >---- Cluster Wars</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="15" >---- Ilkor: Dark Rising</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="12" >---- Rimworlds</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="11" >---- Far Horizons: The Awakening</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="32" >-- Games Seeking Players!</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="31" >---- Games Seeking Players - File Repository - Free Downloads!</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="19" >-- New Games Launching</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="6" >-- PBM Design</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="14" >-- Other PBM Publications</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="38" > General Chatter</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="9" >-- Opinions &amp; General Discussion</option>
+                        <!-- end: forumjump_bit --><!-- start: forumjump_bit -->
+                        <option value="30" >-- Other Games</option>
+                        <!-- end: forumjump_bit -->
+                    </select>
+                    <!-- start: gobutton -->
+                    <input type="submit" class="button" value="Go" />
+                    <!-- end: gobutton -->
+                </form>
+                <script type="text/javascript">
+                    $(".forumjump").on('change', function() {
+                        var option = $(this).val();
+
+                        if(option < 0)
+                        {
+                            window.location = 'forumdisplay.php?fid='+option;
+                        }
+                        else
+                        {
+                            window.location = 'forumdisplay.php?fid='+option;
+                        }
+                    });
+                </script>
+                <!-- end: forumjump_advanced -->
+            </div>
+            <br class="clear" />
+            <!-- start: showthread_usersbrowsing -->
+            <br />
+            <span class="smalltext">Users browsing this thread: 1 Guest(s)</span>
+            <br />
+            <!-- end: showthread_usersbrowsing -->
+            <!-- start: footer -->
+
+        </div>
+    </div>
+    <div id="footer">
+        <div class="upper">
+            <div class="wrapper">
+
+
+                <ul class="menu bottom_links">
+                    <!-- start: footer_showteamlink -->
+                    <li><a href="showteam.php">Forum Team</a></li>
+                    <!-- end: footer_showteamlink -->
+                    <!-- start: footer_contactus -->
+                    <li><a href="/contact.php">Contact Us</a></li>
+                    <!-- end: footer_contactus -->
+                    <li><a href="">PlayByMail Forums</a></li>
+                    <li><a href="#top">Return to Top</a></li>
+                    <li><a href="/archive/index.php?thread-130855.html">Lite (Archive) Mode</a></li>
+                    <li><a href="/misc.php?action=markread">Mark all forums read</a></li>
+                    <li><a href="/misc.php?action=syndication">RSS Syndication</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="lower">
+            <div class="wrapper">
+                <span id="current_time"><strong>Current time:</strong> 10-29-2024, 12:54 AM</span>
+                <span id="copyright">
+				<!-- MyBB is free software developed and maintained by a volunteer community.
+					It would be much appreciated by the MyBB Group if you left the full copyright and "powered by" notice intact,
+					to show your support for MyBB.  If you choose to remove or modify the copyright below,
+					you may be refused support on the MyBB Community Forums.
+
+					This is free software, support us and we'll support you. -->
+				Powered By <a href="https://mybb.com" target="_blank" rel="noopener">MyBB</a>, &copy; 2002-2024 <a href="https://mybb.com" target="_blank" rel="noopener">MyBB Group</a>.
+                    <!-- End powered by -->
+			</span>
+            </div>
+        </div>
+    </div>
+    <!-- The following piece of code allows MyBB to run scheduled tasks. DO NOT REMOVE --><!-- start: task_image -->
+    <img src="/task.php" width="1" height="1" alt="" />
+    <!-- end: task_image --><!-- End task image code -->
+
+</div>
+<!-- end: footer -->
+<script type="text/javascript">
+    var thread_deleted = "0";
+    if(thread_deleted == "1")
+    {
+        $("#quick_reply_form, .new_reply_button, .thread_tools, .inline_rating").hide();
+        $("#moderator_options_selector option.option_mirage").attr("disabled","disabled");
+    }
+</script>
+</body>
+</html>
+<!-- end: showthread -->
+{{end}}
