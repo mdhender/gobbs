@@ -1,0 +1,87 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# some tables must be excluded
+#  PBMnet_questionsessions
+#  PBMnet_sessions
+#  PBMnet_tasklog
+
+tables=(
+  PBMnet_adminlog
+  PBMnet_adminoptions
+  PBMnet_adminsessions
+  PBMnet_adminviews
+  PBMnet_announcements
+  PBMnet_attachments
+  PBMnet_attachtypes
+  PBMnet_awaitingactivation
+  PBMnet_badwords
+  PBMnet_bam
+  PBMnet_banfilters
+  PBMnet_banned
+  PBMnet_buddyrequests
+  PBMnet_calendarpermissions
+  PBMnet_calendars
+  PBMnet_captcha
+  PBMnet_datacache
+  PBMnet_delayedmoderation
+  PBMnet_events
+  PBMnet_forumpermissions
+  PBMnet_forums
+  PBMnet_forumsread
+  PBMnet_forumsubscriptions
+  PBMnet_groupleaders
+  PBMnet_helpdocs
+  PBMnet_helpsections
+  PBMnet_icons
+  PBMnet_joinrequests
+  PBMnet_mailerrors
+  PBMnet_maillogs
+  PBMnet_mailqueue
+  PBMnet_massemails
+  PBMnet_moderatorlog
+  PBMnet_moderators
+  PBMnet_modtools
+  PBMnet_mycode
+  PBMnet_polls
+  PBMnet_pollvotes
+  PBMnet_posts
+  PBMnet_privatemessages
+  PBMnet_profilefields
+  PBMnet_promotionlogs
+  PBMnet_promotions
+  PBMnet_questions
+  PBMnet_reportedcontent
+  PBMnet_reportreasons
+  PBMnet_reputation
+  PBMnet_searchlog
+  PBMnet_settinggroups
+  PBMnet_settings
+  PBMnet_smilies
+  PBMnet_spamlog
+  PBMnet_spiders
+  PBMnet_stats
+  PBMnet_tasks
+  PBMnet_templategroups
+  PBMnet_templates
+  PBMnet_templatesets
+  PBMnet_themes
+  PBMnet_themestylesheets
+  PBMnet_threadprefixes
+  PBMnet_threadratings
+  PBMnet_threads
+  PBMnet_threadsread
+  PBMnet_threadsubscriptions
+  PBMnet_threadviews
+  PBMnet_upgrade_data
+  PBMnet_userfields
+  PBMnet_usergroups
+  PBMnet_users
+  PBMnet_usertitles
+  PBMnet_warninglevels
+  PBMnet_warnings
+  PBMnet_warningtypes
+)
+
+go run ./cmd/mysql2sqlite-verify "$@" "${tables[@]}"
