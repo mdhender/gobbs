@@ -20,7 +20,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
 
 ## Error Handling
 
-- [ ] **Ignored write errors in `mysql2sqlite`.**
+- [x] **Ignored write errors in `mysql2sqlite`.**
   `writeTable` discards errors from `fmt.Fprintf`/`fmt.Fprintln`, and
   `defer w.Flush()` in `main` discards the flush error. A write failure is
   silently swallowed.

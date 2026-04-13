@@ -58,14 +58,25 @@ func main() {
 	defer out.Close()
 
 	w := bufio.NewWriter(out)
-	defer w.Flush()
 
-	fmt.Fprintln(w, "-- Generated from mysql-schema.sql by mysql2sqlite.go")
-	fmt.Fprintln(w, "PRAGMA foreign_keys = OFF;")
-	fmt.Fprintln(w)
+	if _, err := fmt.Fprintln(w, "-- Generated from mysql-schema.sql by mysql2sqlite.go"); err != nil {
+		fail(err)
+	}
+	if _, err := fmt.Fprintln(w, "PRAGMA foreign_keys = OFF;"); err != nil {
+		fail(err)
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
+		fail(err)
+	}
 
 	for _, table := range tables {
-		writeTable(w, table)
+		if err := writeTable(w, table); err != nil {
+			fail(err)
+		}
+	}
+
+	if err := w.Flush(); err != nil {
+		fail(err)
 	}
 }
 
@@ -154,10 +165,12 @@ func parseColumn(name, raw string) columnDef {
 	return col
 }
 
-func writeTable(w *bufio.Writer, table tableDef) {
+func writeTable(w *bufio.Writer, table tableDef) error {
 	autoPK := singleAutoIncrementPK(table)
 
-	fmt.Fprintf(w, "CREATE TABLE \"%s\" (\n", table.name)
+	if _, err := fmt.Fprintf(w, "CREATE TABLE \"%s\" (\n", table.name); err != nil {
+		return err
+	}
 
 	var defs []string
 	for _, col := range table.columns {
@@ -166,12 +179,18 @@ func writeTable(w *bufio.Writer, table tableDef) {
 	if len(table.primaryKey) > 0 && autoPK == "" {
 		defs = append(defs, fmt.Sprintf("  PRIMARY KEY (%s)", quotedColumns(table.primaryKey)))
 	}
-	fmt.Fprintln(w, strings.Join(defs, ",\n"))
-	fmt.Fprintln(w, ");")
+	if _, err := fmt.Fprintln(w, strings.Join(defs, ",\n")); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, ");"); err != nil {
+		return err
+	}
 
 	for _, idx := range table.indexes {
 		if idx.fulltext {
-			fmt.Fprintf(w, "-- Skipped FULLTEXT index \"%s\" on \"%s\" (%s)\n", idx.name, table.name, quotedColumns(idx.columns))
+			if _, err := fmt.Fprintf(w, "-- Skipped FULLTEXT index \"%s\" on \"%s\" (%s)\n", idx.name, table.name, quotedColumns(idx.columns)); err != nil {
+				return err
+			}
 			continue
 		}
 		sqliteIndexName := fmt.Sprintf("%s__%s", table.name, idx.name)
@@ -179,9 +198,14 @@ func writeTable(w *bufio.Writer, table tableDef) {
 		if idx.unique {
 			kind = "CREATE UNIQUE INDEX"
 		}
-		fmt.Fprintf(w, "%s \"%s\" ON \"%s\" (%s);\n", kind, sqliteIndexName, table.name, quotedColumns(idx.columns))
+		if _, err := fmt.Fprintf(w, "%s \"%s\" ON \"%s\" (%s);\n", kind, sqliteIndexName, table.name, quotedColumns(idx.columns)); err != nil {
+			return err
+		}
 	}
-	fmt.Fprintln(w)
+	if _, err := fmt.Fprintln(w); err != nil {
+		return err
+	}
+	return nil
 }
 
 func renderColumn(col columnDef, autoPK string) string {
