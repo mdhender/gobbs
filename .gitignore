@@ -1,8 +1,13 @@
 *.sql
 *.sqlite3
 /.env
+/.gocache
+/.idea
 /backups
+/public
 /setup.json
+/tmp
+/uploads
 
 # Go command builds like `go build ./cmd/tool-name` drop binaries in the repo root.
 # Prefer `go build ./...` when you just want to verify the tree builds cleanly.
@@ -11,6 +16,3 @@
 /mysql2sqlite-verify
 /gobbs-static
 /gobbs-serve
-/.gocache/
-/tmp/
-/public/
