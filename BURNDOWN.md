@@ -53,7 +53,7 @@ regression-safe.
   for each branch (`tinyint`, `varchar`, `blob`, `bool`, unknown, etc.).
 - [x] **`cmd/mysql2sqlite`: `parseColumn`** — verify DEFAULT extraction,
   NOT NULL detection, and AUTO_INCREMENT detection from raw column tails.
-- [ ] **`cmd/mysql2sqlite`: `normalizeDefault`** — verify BLOB `""` → `X''`
+- [x] **`cmd/mysql2sqlite`: `normalizeDefault`** — verify BLOB `""` → `X''`
   conversion and pass-through for other types.
 - [ ] **`cmd/mysql2sqlite`: `parseColumns`** — verify backtick stripping and
   whitespace trimming on comma-separated column lists.

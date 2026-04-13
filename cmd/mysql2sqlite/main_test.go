@@ -109,6 +109,51 @@ func TestParseColumn(t *testing.T) {
 	}
 }
 
+func TestNormalizeDefault(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		col  columnDef
+		want string
+	}{
+		// BLOB with "" default → X''
+		{
+			name: "blobEmptyQuoted",
+			col:  columnDef{mappedType: "BLOB", defaultValue: `""`},
+			want: "X''",
+		},
+		// BLOB with a non-"" default passes through
+		{
+			name: "blobOtherDefault",
+			col:  columnDef{mappedType: "BLOB", defaultValue: "'data'"},
+			want: "'data'",
+		},
+		// Non-BLOB type with "" default passes through
+		{
+			name: "textEmptyQuoted",
+			col:  columnDef{mappedType: "TEXT", defaultValue: `""`},
+			want: `""`,
+		},
+		// INTEGER default passes through
+		{
+			name: "integerDefault",
+			col:  columnDef{mappedType: "INTEGER", defaultValue: "0"},
+			want: "0",
+		},
+		// Empty default passes through
+		{
+			name: "emptyDefault",
+			col:  columnDef{mappedType: "TEXT", defaultValue: ""},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		if got := normalizeDefault(tt.col); got != tt.want {
+			t.Errorf("normalizeDefault(%s) = %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
 func TestMapType(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
