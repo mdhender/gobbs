@@ -57,7 +57,7 @@ regression-safe.
   conversion and pass-through for other types.
 - [x] **`cmd/mysql2sqlite`: `parseColumns`** — verify backtick stripping and
   whitespace trimming on comma-separated column lists.
-- [ ] **`cmd/mysql2sqlite-data`: `coerceSQLiteValue`** — verify nil, `[]byte`,
+- [x] **`cmd/mysql2sqlite-data`: `coerceSQLiteValue`** — verify nil, `[]byte`,
   `time.Time`, `bool`, `int64`/`float64`/`string`, and fallback coercions.
 - [x] **Shared helpers (`mysqlIdent`, `sqliteIdent`)** — verify identifier
   quoting and escaping of embedded quotes.
