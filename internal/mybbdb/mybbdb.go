@@ -36,7 +36,7 @@ func RegisterFlags(cfg *Config) {
 	flag.StringVar(&cfg.MysqlPassword, "mysql-password", "", "MySQL password")
 	flag.StringVar(&cfg.SQLitePath, "sqlite-path", "mybb.sqlite3", "SQLite database path")
 	flag.BoolVar(&cfg.AllTables, "all-tables", false, "process all tables in target schema order")
-	flag.DurationVar(&cfg.Timeout, "timeout", 0, "overall operation timeout (e.g. 5m, 1h); 0 means no timeout")
+	flag.DurationVar(&cfg.Timeout, "timeout", 120*time.Second, "overall operation timeout (e.g. 5m, 1h); 0 means no timeout")
 }
 
 // ContextWithTimeout returns a context with the configured timeout applied.
