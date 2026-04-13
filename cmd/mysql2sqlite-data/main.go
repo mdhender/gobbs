@@ -95,7 +95,12 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 	if err != nil {
 		return fmt.Errorf("%s: begin sqlite transaction: %w", table, err)
 	}
-	defer tx.Rollback()
+	committed := false
+	defer func() {
+		if !committed {
+			tx.Rollback()
+		}
+	}()
 
 	if _, err := tx.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s", mybbdb.SQLiteIdent(table))); err != nil {
 		return fmt.Errorf("%s: clear sqlite table: %w", table, err)
@@ -136,6 +141,7 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("%s: commit sqlite transaction: %w", table, err)
 	}
+	committed = true
 
 	targetCount, err := mybbdb.CountRows(ctx, sqliteDB, table, mybbdb.SQLiteIdent)
 	if err != nil {

@@ -39,7 +39,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
 
 ## Hygiene
 
-- [ ] **`defer tx.Rollback()` after possible commit in `mysql2sqlite-data`.**
+- [x] **`defer tx.Rollback()` after possible commit in `mysql2sqlite-data`.**
   The deferred `Rollback` fires after a successful `Commit` (returns
   `sql.ErrTxDone`). Harmless but noisy; guard the defer.
 
