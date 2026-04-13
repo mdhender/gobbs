@@ -8,6 +8,37 @@
 </head>
 <body>
   <header class="site-header">
+    <div class="wrap top-links">
+      <nav aria-label="Utility">
+        <a href="#">Portal</a>
+        <a href="#">Search</a>
+        <a href="#">Member List</a>
+        <a href="#">Calendar</a>
+        <a href="#">Help</a>
+      </nav>
+    </div>
+    <div class="wrap account-bar">
+      <p class="guest-copy">Hello There, Guest! <a href="#">Login</a> <a href="#">Register</a></p>
+      <form class="login-panel" action="#" method="get">
+        <h2>Login</h2>
+        <label>
+          <span>Username</span>
+          <input type="text" name="username" disabled>
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" disabled>
+        </label>
+        <div class="login-panel-meta">
+          <a href="#">Lost Password?</a>
+          <label class="remember-me">
+            <input type="checkbox" disabled>
+            <span>Remember me</span>
+          </label>
+        </div>
+        <button type="submit" disabled>Login</button>
+      </form>
+    </div>
     <div class="wrap header-inner">
       <a class="brand" href="{{ .Site.BaseURL }}">{{ .Site.Title }}</a>
       <p class="tagline">Read-only forum archive generated from the MyBB SQLite snapshot.</p>
@@ -24,26 +55,100 @@
     {{ end }}
 
     {{ if eq .Section "home" }}
-    <section class="hero">
-      <h1>Forum Archive</h1>
-      <p>{{ len .Site.Threads }} visible threads and preserved attachments, rendered as a static site.</p>
+    <section class="board-index" aria-label="Forum index">
+      {{ range .Forums }}
+      <section class="board-category">
+        <header class="category-head">
+          <span class="collapse-glyph" aria-hidden="true">[-]</span>
+          <div>
+            <h2><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h2>
+            {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+          </div>
+        </header>
+        <div class="board-table">
+          <div class="board-table-head" role="presentation">
+            <span>Forum</span>
+            <span>Threads</span>
+            <span>Posts</span>
+            <span>Last Post</span>
+          </div>
+          {{ if .Children }}
+          {{ range .Children }}
+          <article class="board-row">
+            <div class="board-main">
+              <h3><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h3>
+              {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+              {{ if .Children }}
+              <p class="subforums-inline">
+                <span>Sub Forums:</span>
+                {{ range $index, $child := .Children }}{{ if $index }}, {{ end }}<a href="{{ forumLink $.Site $child.ID }}">{{ $child.Name }}</a>{{ end }}
+              </p>
+              {{ end }}
+            </div>
+            <div class="board-count" data-label="Threads">{{ formatNumber .ThreadsCount }}</div>
+            <div class="board-count" data-label="Posts">{{ formatNumber .PostsCount }}</div>
+            <div class="board-lastpost">
+              {{ if .LastPostThread }}
+              <a href="{{ threadLink $.Site .LastPostThread }}">{{ .LastPostSubject }}</a>
+              {{ else if .LastPostSubject }}
+              <span>{{ .LastPostSubject }}</span>
+              {{ else }}
+              <span>No posts</span>
+              {{ end }}
+              {{ if .LastPost.IsZero }}
+              <span class="board-lastpost-meta">No activity yet</span>
+              {{ else }}
+              <time datetime="{{ .LastPost.Format "2006-01-02T15:04:05Z07:00" }}">{{ .LastPost.Format "01-02-2006, 03:04 PM MST" }}</time>
+              <span class="board-lastpost-meta">by {{ .LastPostAuthor }}</span>
+              {{ end }}
+            </div>
+          </article>
+          {{ end }}
+          {{ else }}
+          <article class="board-row">
+            <div class="board-main">
+              <h3><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h3>
+              {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+            </div>
+            <div class="board-count" data-label="Threads">{{ formatNumber .ThreadsCount }}</div>
+            <div class="board-count" data-label="Posts">{{ formatNumber .PostsCount }}</div>
+            <div class="board-lastpost">
+              {{ if .LastPostThread }}
+              <a href="{{ threadLink $.Site .LastPostThread }}">{{ .LastPostSubject }}</a>
+              {{ else if .LastPostSubject }}
+              <span>{{ .LastPostSubject }}</span>
+              {{ else }}
+              <span>No posts</span>
+              {{ end }}
+              {{ if .LastPost.IsZero }}
+              <span class="board-lastpost-meta">No activity yet</span>
+              {{ else }}
+              <time datetime="{{ .LastPost.Format "2006-01-02T15:04:05Z07:00" }}">{{ .LastPost.Format "01-02-2006, 03:04 PM MST" }}</time>
+              <span class="board-lastpost-meta">by {{ .LastPostAuthor }}</span>
+              {{ end }}
+            </div>
+          </article>
+          {{ end }}
+        </div>
+      </section>
+      {{ end }}
     </section>
 
-    <section class="forum-grid">
-      {{ range .Forums }}
-      <article class="forum-card">
-        <h2><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h2>
-        {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
-        <p class="forum-meta">{{ .ThreadsCount }} threads · {{ .PostsCount }} posts</p>
-        {{ if .Children }}
-        <ul class="subforums">
-          {{ range .Children }}
-          <li><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></li>
-          {{ end }}
-        </ul>
+    <section class="board-panels">
+      <article class="panel">
+        <h2>Who's Online</h2>
+        <p class="thread-meta">Archive mode placeholder for the original online-members block.</p>
+        <p>Visitor presence is not tracked in the static archive, but this section stays in the layout so we can decide later what to keep, replace, or remove.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Board Statistics</h2>
+        <p>Our members have made a total of {{ formatNumber .Site.Stats.PostsTotal }} posts in {{ formatNumber .Site.Stats.ThreadsTotal }} visible threads.</p>
+        <p>We currently have {{ formatNumber .Site.Stats.MembersTotal }} members registered.</p>
+        {{ if .Site.Stats.NewestMember }}
+        <p>Please welcome our newest member, <a href="#">{{ .Site.Stats.NewestMember.Name }}</a>.</p>
         {{ end }}
       </article>
-      {{ end }}
     </section>
     {{ end }}
 
@@ -139,6 +244,15 @@
 
   <footer class="site-footer">
     <div class="wrap">
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#">Forum Team</a>
+        <a href="#">Contact Us</a>
+        <a href="{{ .Site.BaseURL }}">PlayByMail Forums</a>
+        <a href="#">Return to Top</a>
+        <a href="#">Lite (Archive) Mode</a>
+        <a href="#">Mark all forums read</a>
+        <a href="#">RSS Syndication</a>
+      </nav>
       <p>Generated {{ .Site.GeneratedAt.Format "Jan 2, 2006 15:04 MST" }}.</p>
     </div>
   </footer>

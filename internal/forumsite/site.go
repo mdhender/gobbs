@@ -43,6 +43,14 @@ type siteData struct {
 	GeneratedAt time.Time
 	Forums      []*forum
 	Threads     []*thread
+	Stats       boardStats
+}
+
+type boardStats struct {
+	PostsTotal   int64
+	ThreadsTotal int64
+	MembersTotal int64
+	NewestMember *user
 }
 
 type forum struct {
@@ -58,6 +66,7 @@ type forum struct {
 	LastPost        time.Time
 	LastPostSubject string
 	LastPostThread  int64
+	LastPostAuthor  string
 	Children        []*forum
 	Threads         []*thread
 }
@@ -339,6 +348,24 @@ func (r *Renderer) loadTemplate() (*template.Template, error) {
 			}
 			return strings.ToUpper(string([]rune(name)[0]))
 		},
+		"formatNumber": func(v int64) string {
+			sign := ""
+			if v < 0 {
+				sign = "-"
+				v = -v
+			}
+			s := fmt.Sprintf("%d", v)
+			if len(s) <= 3 {
+				return sign + s
+			}
+			var parts []string
+			for len(s) > 3 {
+				parts = append([]string{s[len(s)-3:]}, parts...)
+				s = s[:len(s)-3]
+			}
+			parts = append([]string{s}, parts...)
+			return sign + strings.Join(parts, ",")
+		},
 	}
 
 	if r.cfg.LiveTemplate {
@@ -377,6 +404,7 @@ func (r *Renderer) loadSite() (*siteData, error) {
 	if err != nil {
 		return nil, err
 	}
+	stats := computeBoardStats(users, threads)
 
 	for _, currentThread := range threads {
 		currentForum := forumsByID[currentThread.ForumID]
@@ -407,6 +435,7 @@ func (r *Renderer) loadSite() (*siteData, error) {
 		GeneratedAt: time.Now().UTC(),
 		Forums:      forums,
 		Threads:     threads,
+		Stats:       stats,
 	}, nil
 }
 
@@ -449,7 +478,7 @@ func loadUsers(db *sql.DB, prefix string) (map[int64]*user, error) {
 
 func loadForums(db *sql.DB, prefix string) (map[int64]*forum, []*forum, error) {
 	query := fmt.Sprintf(`
-SELECT fid, pid, name, description, type, disporder, threads, posts, lastpost, lastpostsubject, lastposttid
+SELECT fid, pid, name, description, type, disporder, threads, posts, lastpost, lastpostsubject, lastposttid, lastposter
 FROM %s
 WHERE active = 1
 ORDER BY pid, disporder, fid`, tableName(prefix, "forums"))
@@ -468,14 +497,16 @@ ORDER BY pid, disporder, fid`, tableName(prefix, "forums"))
 			lastPostUnix     int64
 			lastPostSubject  string
 			lastPostThreadID int64
+			lastPoster       string
 		)
-		if err := rows.Scan(&f.ID, &f.ParentID, &f.Name, &description, &f.Type, &f.DisplayOrder, &f.ThreadsCount, &f.PostsCount, &lastPostUnix, &lastPostSubject, &lastPostThreadID); err != nil {
+		if err := rows.Scan(&f.ID, &f.ParentID, &f.Name, &description, &f.Type, &f.DisplayOrder, &f.ThreadsCount, &f.PostsCount, &lastPostUnix, &lastPostSubject, &lastPostThreadID, &lastPoster); err != nil {
 			return nil, nil, fmt.Errorf("scan forum: %w", err)
 		}
 		f.DescriptionHTML = renderBBCode(description)
 		f.LastPost = unixTime(lastPostUnix)
 		f.LastPostSubject = lastPostSubject
 		f.LastPostThread = lastPostThreadID
+		f.LastPostAuthor = lastPoster
 		forumsByID[f.ID] = &f
 		ordered = append(ordered, &f)
 	}
@@ -618,6 +649,24 @@ func allForums(roots []*forum) []*forum {
 	}
 	walk(roots)
 	return out
+}
+
+func computeBoardStats(users map[int64]*user, threads []*thread) boardStats {
+	stats := boardStats{
+		ThreadsTotal: int64(len(threads)),
+		MembersTotal: int64(len(users)),
+	}
+	var newest *user
+	for _, currentUser := range users {
+		if newest == nil || currentUser.ID > newest.ID {
+			newest = currentUser
+		}
+	}
+	stats.NewestMember = newest
+	for _, currentThread := range threads {
+		stats.PostsTotal += int64(len(currentThread.Posts))
+	}
+	return stats
 }
 
 func findForum(roots []*forum, id int64) *forum {
