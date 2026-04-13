@@ -64,88 +64,13 @@ img {
   flex-wrap: wrap;
 }
 
-.account-bar {
-  display: flex;
-  justify-content: space-between;
-  gap: 1.5rem;
-  align-items: start;
-  padding: 1rem 0 0.5rem;
-  border-top: 1px solid rgba(215, 204, 185, 0.65);
-}
-
-.guest-copy {
-  margin: 0;
-  padding-top: 0.35rem;
-}
-
-.login-panel {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 0.75rem 1rem;
-  min-width: min(100%, 440px);
-  padding: 1rem;
-  background: rgba(255, 252, 246, 0.9);
-  border: 1px solid rgba(215, 204, 185, 0.8);
-  border-radius: 16px;
-}
-
-.login-panel h2,
-.login-panel-meta,
-.login-panel button {
-  grid-column: 1 / -1;
-}
-
-.login-panel h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.login-panel label {
-  display: grid;
-  gap: 0.3rem;
-  font-size: 0.9rem;
-}
-
-.login-panel input,
-.login-panel button {
-  font: inherit;
-}
-
-.login-panel input[type="text"],
-.login-panel input[type="password"] {
-  width: 100%;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-}
-
-.login-panel-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
-  font-size: 0.9rem;
-}
-
-.remember-me {
-  display: inline-flex;
-  gap: 0.45rem;
-  align-items: center;
-}
-
-.login-panel button {
-  justify-self: start;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
 .header-inner,
 .site-footer .wrap {
   padding: 1.25rem 0;
+}
+
+.header-inner {
+  border-top: 1px solid rgba(215, 204, 185, 0.65);
 }
 
 .brand {
@@ -179,6 +104,36 @@ img {
 
 .hero-compact {
   padding-bottom: 0.5rem;
+}
+
+.error-shell {
+  max-width: 42rem;
+  margin: 3rem auto 4rem;
+  padding: 2rem 2.25rem;
+  background: var(--panel);
+  border: 1px solid rgba(215, 204, 185, 0.85);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.error-shell h1 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+}
+
+.error-code {
+  margin: 0 0 0.5rem;
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.error-copy {
+  max-width: 36rem;
+  color: var(--muted);
 }
 
 .board-index {
@@ -514,16 +469,6 @@ img {
 }
 
 @media (max-width: 780px) {
-  .account-bar {
-    grid-template-columns: 1fr;
-    display: grid;
-  }
-
-  .login-panel {
-    grid-template-columns: 1fr;
-    min-width: 0;
-  }
-
   .board-table-head {
     display: none;
   }
@@ -560,8 +505,7 @@ img {
   }
 
   .footer-links,
-  .top-links nav,
-  .login-panel-meta {
+  .top-links nav {
     flex-direction: column;
     align-items: start;
   }

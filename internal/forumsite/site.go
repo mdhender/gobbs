@@ -135,10 +135,17 @@ type pageData struct {
 	Site       *siteData
 	PageTitle  string
 	Section    string
+	ErrorPage  *errorPage
 	Forum      *forum
 	Thread     *thread
 	Forums     []*forum
 	Breadcrumb []crumb
+}
+
+type errorPage struct {
+	StatusCode int
+	Heading    string
+	Message    string
 }
 
 type crumb struct {
@@ -236,6 +243,11 @@ func (r *Renderer) Build(outDir string) error {
 	if err := renderPage(tmpl, filepath.Join(outDir, "index.html"), indexData); err != nil {
 		return err
 	}
+	for _, currentErrorPage := range errorPages(site) {
+		if err := renderPage(tmpl, filepath.Join(outDir, fmt.Sprintf("%d.html", currentErrorPage.ErrorPage.StatusCode)), currentErrorPage); err != nil {
+			return err
+		}
+	}
 
 	for _, currentForum := range allForums(site.Forums) {
 		dir := filepath.Join(outDir, "f", fmt.Sprintf("%d", currentForum.ID))
@@ -315,12 +327,12 @@ func (r *Renderer) servePage(w http.ResponseWriter, req *http.Request) {
 	case strings.HasPrefix(path, "/f/"):
 		id, ok := parseID(path, "/f/")
 		if !ok {
-			http.NotFound(w, req)
+			renderHTTPErrorPage(w, tmpl, customErrorPageData(site, http.StatusNotFound))
 			return
 		}
 		currentForum := findForum(site.Forums, id)
 		if currentForum == nil {
-			http.NotFound(w, req)
+			renderHTTPErrorPage(w, tmpl, customErrorPageData(site, http.StatusNotFound))
 			return
 		}
 		data = pageData{
@@ -333,12 +345,12 @@ func (r *Renderer) servePage(w http.ResponseWriter, req *http.Request) {
 	case strings.HasPrefix(path, "/t/"):
 		id, ok := parseID(path, "/t/")
 		if !ok {
-			http.NotFound(w, req)
+			renderHTTPErrorPage(w, tmpl, customErrorPageData(site, http.StatusNotFound))
 			return
 		}
 		currentThread := findThread(site.Threads, id)
 		if currentThread == nil {
-			http.NotFound(w, req)
+			renderHTTPErrorPage(w, tmpl, customErrorPageData(site, http.StatusNotFound))
 			return
 		}
 		data = pageData{
@@ -349,7 +361,7 @@ func (r *Renderer) servePage(w http.ResponseWriter, req *http.Request) {
 			Breadcrumb: breadcrumbsForThread(site, currentThread),
 		}
 	default:
-		http.NotFound(w, req)
+		renderHTTPErrorPage(w, tmpl, customErrorPageData(site, http.StatusNotFound))
 		return
 	}
 
@@ -667,6 +679,48 @@ func renderPage(tmpl *template.Template, path string, data pageData) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
+}
+
+func renderHTTPErrorPage(w http.ResponseWriter, tmpl *template.Template, data pageData) {
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(data.ErrorPage.StatusCode)
+	w.Write(buf.Bytes())
+}
+
+func errorPages(site *siteData) []pageData {
+	return []pageData{
+		customErrorPageData(site, http.StatusNotFound),
+		customErrorPageData(site, http.StatusInternalServerError),
+	}
+}
+
+func customErrorPageData(site *siteData, statusCode int) pageData {
+	page := errorPage{
+		StatusCode: statusCode,
+	}
+	switch statusCode {
+	case http.StatusNotFound:
+		page.Heading = "Page Not Found"
+		page.Message = "The archive could not find the page you requested. The thread, forum, or file may not exist in this snapshot."
+	case http.StatusInternalServerError:
+		page.Heading = "Archive Error"
+		page.Message = "Something went wrong while serving this page. Please try again, or return to the archive index."
+	default:
+		page.Heading = "Archive Notice"
+		page.Message = "This archive page is not available right now."
+	}
+
+	return pageData{
+		Site:      site,
+		PageTitle: fmt.Sprintf("%d %s - %s", page.StatusCode, page.Heading, site.Title),
+		Section:   "error",
+		ErrorPage: &page,
+	}
 }
 
 func allForums(roots []*forum) []*forum {

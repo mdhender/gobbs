@@ -1,6 +1,8 @@
 package forumsite
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -58,5 +60,55 @@ func TestContentDebugClass(t *testing.T) {
 	}
 	if got := contentDebugClass(setupjson.TextFormatRawHTML, false); got != "" {
 		t.Fatalf("contentDebugClass(raw-html, false) = %q, want empty", got)
+	}
+}
+
+func TestBuildWritesErrorPages(t *testing.T) {
+	t.Parallel()
+
+	renderer, err := New(Config{
+		SQLitePath:   filepath.Join("..", "..", "mybb.sqlite3"),
+		SetupPath:    filepath.Join("..", "..", "setup.json"),
+		TemplatesDir: "templates",
+		LiveTemplate: true,
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	defer renderer.Close()
+
+	outDir := t.TempDir()
+	if err := renderer.Build(outDir); err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+
+	for _, tc := range []struct {
+		name     string
+		filename string
+		contains []string
+	}{
+		{
+			name:     "404 page",
+			filename: "404.html",
+			contains: []string{"404", "Page Not Found", "Return to the archive index"},
+		},
+		{
+			name:     "500 page",
+			filename: "500.html",
+			contains: []string{"500", "Archive Error", "Return to the archive index"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join(outDir, tc.filename))
+			if err != nil {
+				t.Fatalf("ReadFile(%q) error = %v", tc.filename, err)
+			}
+			html := string(data)
+			for _, want := range tc.contains {
+				if !strings.Contains(html, want) {
+					t.Fatalf("%s missing %q", tc.filename, want)
+				}
+			}
+		})
 	}
 }

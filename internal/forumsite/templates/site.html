@@ -17,28 +17,6 @@
         <a href="#">Help</a>
       </nav>
     </div>
-    <div class="wrap account-bar">
-      <p class="guest-copy">Hello There, Guest! <a href="#">Login</a> <a href="#">Register</a></p>
-      <form class="login-panel" action="#" method="get">
-        <h2>Login</h2>
-        <label>
-          <span>Username</span>
-          <input type="text" name="username" disabled>
-        </label>
-        <label>
-          <span>Password</span>
-          <input type="password" name="password" disabled>
-        </label>
-        <div class="login-panel-meta">
-          <a href="#">Lost Password?</a>
-          <label class="remember-me">
-            <input type="checkbox" disabled>
-            <span>Remember me</span>
-          </label>
-        </div>
-        <button type="submit" disabled>Login</button>
-      </form>
-    </div>
     <div class="wrap header-inner">
       <a class="brand" href="{{ .Site.BaseURL }}">{{ .Site.Title }}</a>
       <p class="tagline">Read-only forum archive generated from the MyBB SQLite snapshot.</p>
@@ -152,6 +130,15 @@
     </section>
     {{ end }}
 
+    {{ if eq .Section "error" }}
+    <section class="error-shell">
+      <p class="error-code">{{ .ErrorPage.StatusCode }}</p>
+      <h1>{{ .ErrorPage.Heading }}</h1>
+      <p class="error-copy">{{ .ErrorPage.Message }}</p>
+      <p><a href="{{ .Site.BaseURL }}">Return to the archive index</a></p>
+    </section>
+    {{ end }}
+
     {{ if eq .Section "forum" }}
     <section class="hero hero-compact">
       <h1>{{ .Forum.Name }}</h1>
@@ -245,13 +232,7 @@
   <footer class="site-footer">
     <div class="wrap">
       <nav class="footer-links" aria-label="Footer">
-        <a href="#">Forum Team</a>
-        <a href="#">Contact Us</a>
-        <a href="{{ .Site.BaseURL }}">PlayByMail Forums</a>
         <a href="#">Return to Top</a>
-        <a href="#">Lite (Archive) Mode</a>
-        <a href="#">Mark all forums read</a>
-        <a href="#">RSS Syndication</a>
       </nav>
       <p>Generated {{ .Site.GeneratedAt.Format "Jan 2, 2006 15:04 MST" }}.</p>
     </div>
