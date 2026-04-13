@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/mdhender/gobbs/internal/setupjson"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "modernc.org/sqlite"
@@ -23,15 +24,6 @@ type config struct {
 	sqlitePath    string
 	setupFile     string
 	allTables     bool
-}
-
-type setupFileConfig struct {
-	Database struct {
-		Hostname string `json:"hostname"`
-		Database string `json:"database"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"database"`
 }
 
 func main() {
@@ -94,7 +86,7 @@ func main() {
 }
 
 func loadSetupDefaults(cfg *config) error {
-	values, err := parseSetupJSON(cfg.setupFile)
+	values, err := setupjson.Parse(cfg.setupFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil
@@ -131,20 +123,6 @@ func validateConfig(cfg config) error {
 
 func mysqlDSN(cfg config) string {
 	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=UTC", cfg.mysqlUser, cfg.mysqlPassword, cfg.mysqlAddr, cfg.mysqlDatabase)
-}
-
-func parseSetupJSON(path string) (setupFileConfig, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return setupFileConfig{}, err
-	}
-	defer f.Close()
-
-	var cfg setupFileConfig
-	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
-		return setupFileConfig{}, fmt.Errorf("parse %s: %w", path, err)
-	}
-	return cfg, nil
 }
 
 func resolveTables(ctx context.Context, sqliteDB *sql.DB, cfg config, args []string) ([]string, error) {

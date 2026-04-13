@@ -62,7 +62,7 @@
           <span class="collapse-glyph" aria-hidden="true">[-]</span>
           <div>
             <h2><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h2>
-            {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+            {{ if .DescriptionHTML }}<div class="forum-description{{ .DescriptionClass }}">{{ .DescriptionHTML }}</div>{{ end }}
           </div>
         </header>
         <div class="board-table">
@@ -77,7 +77,7 @@
           <article class="board-row">
             <div class="board-main">
               <h3><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h3>
-              {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+              {{ if .DescriptionHTML }}<div class="forum-description{{ .DescriptionClass }}">{{ .DescriptionHTML }}</div>{{ end }}
               {{ if .Children }}
               <p class="subforums-inline">
                 <span>Sub Forums:</span>
@@ -108,7 +108,7 @@
           <article class="board-row">
             <div class="board-main">
               <h3><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h3>
-              {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+              {{ if .DescriptionHTML }}<div class="forum-description{{ .DescriptionClass }}">{{ .DescriptionHTML }}</div>{{ end }}
             </div>
             <div class="board-count" data-label="Threads">{{ formatNumber .ThreadsCount }}</div>
             <div class="board-count" data-label="Posts">{{ formatNumber .PostsCount }}</div>
@@ -155,7 +155,7 @@
     {{ if eq .Section "forum" }}
     <section class="hero hero-compact">
       <h1>{{ .Forum.Name }}</h1>
-      {{ if .Forum.DescriptionHTML }}<div class="forum-description">{{ .Forum.DescriptionHTML }}</div>{{ end }}
+      {{ if .Forum.DescriptionHTML }}<div class="forum-description{{ .Forum.DescriptionClass }}">{{ .Forum.DescriptionHTML }}</div>{{ end }}
     </section>
 
     {{ if .Forum.Children }}
@@ -165,7 +165,7 @@
         {{ range .Forum.Children }}
         <article class="forum-card">
           <h3><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h3>
-          {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+          {{ if .DescriptionHTML }}<div class="forum-description{{ .DescriptionClass }}">{{ .DescriptionHTML }}</div>{{ end }}
           <p class="forum-meta">{{ .ThreadsCount }} threads · {{ .PostsCount }} posts</p>
         </article>
         {{ end }}
@@ -218,7 +218,7 @@
             <a class="post-anchor" href="#post-{{ .ID }}">#{{ .ID }}</a>
             <time datetime="{{ .CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}">{{ .CreatedAt.Format "Jan 2, 2006 15:04 MST" }}</time>
           </header>
-          <div class="prose">{{ .BodyHTML }}</div>
+          <div class="prose{{ .BodyClass }}">{{ .BodyHTML }}</div>
           {{ if .Attachments }}
           <section class="attachments">
             <h3>Attachments</h3>

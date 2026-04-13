@@ -6,6 +6,8 @@
   --line: #d7ccb9;
   --accent: #1f5c4f;
   --accent-soft: #dff0ea;
+  --debug-raw-html-bg: rgba(173, 86, 255, 0.08);
+  --debug-raw-html-line: rgba(173, 86, 255, 0.9);
   --shadow: 0 16px 40px rgba(47, 39, 24, 0.08);
 }
 
@@ -454,6 +456,22 @@ img {
 
 .prose p {
   margin: 0 0 1rem;
+}
+
+.debug-raw-html {
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--debug-raw-html-line);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, var(--debug-raw-html-bg), rgba(255, 255, 255, 0.12)),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(173, 86, 255, 0.06),
+      rgba(173, 86, 255, 0.06) 12px,
+      rgba(255, 255, 255, 0) 12px,
+      rgba(255, 255, 255, 0) 24px
+    );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
 .prose blockquote {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"html"
 	"html/template"
@@ -17,19 +18,29 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mdhender/gobbs/internal/setupjson"
+	"github.com/microcosm-cc/bluemonday"
+
 	_ "modernc.org/sqlite"
 )
 
 //go:embed templates/*
 var embeddedTemplates embed.FS
 
+var rawHTMLPolicy = newRawHTMLPolicy()
+
 type Config struct {
 	SQLitePath   string
+	SetupPath    string
 	TablePrefix  string
 	SiteTitle    string
 	BaseURL      string
 	TemplatesDir string
 	LiveTemplate bool
+	TextFormats  setupjson.TextFormats
+	Debug        struct {
+		HighlightRawHTML bool
+	}
 }
 
 type Renderer struct {
@@ -54,21 +65,22 @@ type boardStats struct {
 }
 
 type forum struct {
-	ID              int64
-	ParentID        int64
-	Parent          *forum
-	Name            string
-	DescriptionHTML template.HTML
-	Type            string
-	DisplayOrder    int
-	ThreadsCount    int64
-	PostsCount      int64
-	LastPost        time.Time
-	LastPostSubject string
-	LastPostThread  int64
-	LastPostAuthor  string
-	Children        []*forum
-	Threads         []*thread
+	ID               int64
+	ParentID         int64
+	Parent           *forum
+	Name             string
+	DescriptionHTML  template.HTML
+	DescriptionClass string
+	Type             string
+	DisplayOrder     int
+	ThreadsCount     int64
+	PostsCount       int64
+	LastPost         time.Time
+	LastPostSubject  string
+	LastPostThread   int64
+	LastPostAuthor   string
+	Children         []*forum
+	Threads          []*thread
 }
 
 type thread struct {
@@ -95,6 +107,7 @@ type post struct {
 	EditedAt       time.Time
 	EditReason     string
 	BodyHTML       template.HTML
+	BodyClass      string
 	Attachments    []*attachment
 	Author         *user
 	EditedAtString string
@@ -137,6 +150,9 @@ func New(cfg Config) (*Renderer, error) {
 	if cfg.SQLitePath == "" {
 		cfg.SQLitePath = "mybb.sqlite3"
 	}
+	if cfg.SetupPath == "" {
+		cfg.SetupPath = "setup.json"
+	}
 	if cfg.SiteTitle == "" {
 		cfg.SiteTitle = "PlayByMail Forums Archive"
 	}
@@ -149,6 +165,19 @@ func New(cfg Config) (*Renderer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite archive: %w", err)
 	}
+
+	setupCfg, err := setupjson.Parse(cfg.SetupPath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		db.Close()
+		return nil, err
+	}
+	if cfg.TablePrefix == "" {
+		cfg.TablePrefix = setupCfg.Database.TablePrefix
+	}
+	if len(cfg.TextFormats) == 0 {
+		cfg.TextFormats = setupCfg.TextFormats
+	}
+	cfg.Debug.HighlightRawHTML = setupCfg.Debug.HighlightRawHTML
 
 	if cfg.TablePrefix == "" {
 		cfg.TablePrefix, err = detectPrefix(db)
@@ -392,7 +421,7 @@ func (r *Renderer) loadSite() (*siteData, error) {
 	if err != nil {
 		return nil, err
 	}
-	forumsByID, forums, err := loadForums(r.db, r.cfg.TablePrefix)
+	forumsByID, forums, err := loadForums(r.db, r.cfg.TablePrefix, r.cfg.TextFormats, r.cfg.Debug.HighlightRawHTML)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +429,7 @@ func (r *Renderer) loadSite() (*siteData, error) {
 	if err != nil {
 		return nil, err
 	}
-	threads, err := loadThreads(r.db, r.cfg.TablePrefix, forumsByID, users, attachmentsByPost)
+	threads, err := loadThreads(r.db, r.cfg.TablePrefix, r.cfg.TextFormats, r.cfg.Debug.HighlightRawHTML, forumsByID, users, attachmentsByPost)
 	if err != nil {
 		return nil, err
 	}
@@ -476,7 +505,7 @@ func loadUsers(db *sql.DB, prefix string) (map[int64]*user, error) {
 	return users, rows.Err()
 }
 
-func loadForums(db *sql.DB, prefix string) (map[int64]*forum, []*forum, error) {
+func loadForums(db *sql.DB, prefix string, textFormats setupjson.TextFormats, highlightRawHTML bool) (map[int64]*forum, []*forum, error) {
 	query := fmt.Sprintf(`
 SELECT fid, pid, name, description, type, disporder, threads, posts, lastpost, lastpostsubject, lastposttid, lastposter
 FROM %s
@@ -502,7 +531,9 @@ ORDER BY pid, disporder, fid`, tableName(prefix, "forums"))
 		if err := rows.Scan(&f.ID, &f.ParentID, &f.Name, &description, &f.Type, &f.DisplayOrder, &f.ThreadsCount, &f.PostsCount, &lastPostUnix, &lastPostSubject, &lastPostThreadID, &lastPoster); err != nil {
 			return nil, nil, fmt.Errorf("scan forum: %w", err)
 		}
-		f.DescriptionHTML = renderBBCode(description)
+		format := textFormats.Format(configTableName(prefix, "forums"), "description")
+		f.DescriptionHTML = renderFormattedText(format, description)
+		f.DescriptionClass = contentDebugClass(format, highlightRawHTML)
 		f.LastPost = unixTime(lastPostUnix)
 		f.LastPostSubject = lastPostSubject
 		f.LastPostThread = lastPostThreadID
@@ -556,7 +587,7 @@ ORDER BY aid`, tableName(prefix, "attachments"))
 	return attachmentsByPost, rows.Err()
 }
 
-func loadThreads(db *sql.DB, prefix string, forumsByID map[int64]*forum, users map[int64]*user, attachmentsByPost map[int64][]*attachment) ([]*thread, error) {
+func loadThreads(db *sql.DB, prefix string, textFormats setupjson.TextFormats, highlightRawHTML bool, forumsByID map[int64]*forum, users map[int64]*user, attachmentsByPost map[int64][]*attachment) ([]*thread, error) {
 	threadQuery := fmt.Sprintf(`
 SELECT tid, fid, subject, uid, username, dateline, lastpost, replies, views, sticky
 FROM %s
@@ -608,7 +639,9 @@ ORDER BY tid, dateline, pid`, tableName(prefix, "posts"))
 		}
 		p.CreatedAt = unixTime(createdAtUnix)
 		p.EditedAt = unixTime(editedAtUnix)
-		p.BodyHTML = renderBBCode(message)
+		format := textFormats.Format(configTableName(prefix, "posts"), "message")
+		p.BodyHTML = renderFormattedText(format, message)
+		p.BodyClass = contentDebugClass(format, highlightRawHTML)
 		p.Attachments = attachmentsByPost[p.ID]
 		p.Author = users[p.AuthorID]
 		if !p.EditedAt.IsZero() {
@@ -732,7 +765,11 @@ func unixTime(v int64) time.Time {
 }
 
 func tableName(prefix, base string) string {
-	return `"` + strings.ReplaceAll(prefix+base, `"`, `""`) + `"`
+	return `"` + strings.ReplaceAll(configTableName(prefix, base), `"`, `""`) + `"`
+}
+
+func configTableName(prefix, base string) string {
+	return prefix + base
 }
 
 func normalizeAssetPath(value string) string {
@@ -832,6 +869,56 @@ func renderBBCode(source string) template.HTML {
 	rendered := strings.Join(paragraphs, "\n")
 	rendered = strings.ReplaceAll(rendered, "<p></p>", "")
 	return template.HTML(rendered)
+}
+
+func renderFormattedText(format setupjson.TextFormat, source string) template.HTML {
+	switch format {
+	case setupjson.TextFormatRawHTML:
+		return sanitizeHTMLFragment(source)
+	case setupjson.TextFormatBBCodes:
+		return renderBBCode(source)
+	case setupjson.TextFormatTaintedText:
+		fallthrough
+	default:
+		return renderPlainText(source)
+	}
+}
+
+func contentDebugClass(format setupjson.TextFormat, highlightRawHTML bool) string {
+	if highlightRawHTML && format == setupjson.TextFormatRawHTML {
+		return " debug-raw-html"
+	}
+	return ""
+}
+
+func renderPlainText(source string) template.HTML {
+	if strings.TrimSpace(source) == "" {
+		return ""
+	}
+	escaped := html.EscapeString(strings.ReplaceAll(html.UnescapeString(source), "\r\n", "\n"))
+	paragraphs := strings.Split(escaped, "\n\n")
+	for i, paragraph := range paragraphs {
+		paragraphs[i] = "<p>" + strings.ReplaceAll(paragraph, "\n", "<br>\n") + "</p>"
+	}
+	rendered := strings.Join(paragraphs, "\n")
+	rendered = strings.ReplaceAll(rendered, "<p></p>", "")
+	return template.HTML(rendered)
+}
+
+func sanitizeHTMLFragment(source string) template.HTML {
+	if strings.TrimSpace(source) == "" {
+		return ""
+	}
+	return template.HTML(rawHTMLPolicy.Sanitize(source))
+}
+
+func newRawHTMLPolicy() *bluemonday.Policy {
+	policy := bluemonday.UGCPolicy()
+	policy.AllowImages()
+	policy.RequireNoFollowOnFullyQualifiedLinks(true)
+	policy.RequireNoReferrerOnFullyQualifiedLinks(true)
+	policy.AddTargetBlankToFullyQualifiedLinks(true)
+	return policy
 }
 
 func renderLists(source string) string {

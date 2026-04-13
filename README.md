@@ -45,7 +45,7 @@ For automatic browser refresh while you work, run:
 make live
 ```
 
-That starts `air` plus a BrowserSync proxy. Open `http://127.0.0.1:3000` instead of `:8080` and the page will refresh automatically when templates, CSS, or the rebuilt preview binary change.
+That starts `air` plus a BrowserSync proxy. Open `http://localhost:3000` instead of `:8080` and the page will refresh automatically when templates, CSS, or the rebuilt preview binary change.
 
 If you prefer a single multiplexed terminal, use `overmind` with the included [Procfile.dev](/Users/wraith/Software/mdhender/gobbs/Procfile.dev:1):
 
@@ -53,7 +53,7 @@ If you prefer a single multiplexed terminal, use `overmind` with the included [P
 overmind start -f Procfile.dev
 ```
 
-That runs the Go preview server watcher and the BrowserSync proxy together. Open `http://127.0.0.1:3000` for the auto-refreshing preview.
+That runs the Go preview server watcher and the BrowserSync proxy together. Open `http://localhost:3000` for the auto-refreshing preview.
 
 The included [`.air.toml`](/Users/wraith/Software/mdhender/gobbs/.air.toml:1) is configured to:
 
