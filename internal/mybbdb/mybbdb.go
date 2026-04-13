@@ -124,8 +124,10 @@ ORDER BY rowid`)
 	return tables, rows.Err()
 }
 
-// CountRows executes a pre-formed COUNT(*) query and returns the result.
-func CountRows(ctx context.Context, db *sql.DB, query string) (int64, error) {
+// CountRows counts the rows in the given table. The quoteFn parameter should
+// be MysqlIdent or SQLiteIdent depending on the database.
+func CountRows(ctx context.Context, db *sql.DB, table string, quoteFn func(string) string) (int64, error) {
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s", quoteFn(table))
 	var count int64
 	if err := db.QueryRowContext(ctx, query).Scan(&count); err != nil {
 		return 0, err

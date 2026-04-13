@@ -68,11 +68,11 @@ func main() {
 }
 
 func verifyTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) (bool, error) {
-	mysqlCount, err := mybbdb.CountRows(ctx, mysqlDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mybbdb.MysqlIdent(table)))
+	mysqlCount, err := mybbdb.CountRows(ctx, mysqlDB, table, mybbdb.MysqlIdent)
 	if err != nil {
 		return false, fmt.Errorf("%s: count mysql rows: %w", table, err)
 	}
-	sqliteCount, err := mybbdb.CountRows(ctx, sqliteDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mybbdb.SQLiteIdent(table)))
+	sqliteCount, err := mybbdb.CountRows(ctx, sqliteDB, table, mybbdb.SQLiteIdent)
 	if err != nil {
 		return false, fmt.Errorf("%s: count sqlite rows: %w", table, err)
 	}

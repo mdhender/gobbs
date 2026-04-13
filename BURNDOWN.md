@@ -14,7 +14,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
   `parseColumn` (line 150) calls `regexp.MustCompile` inside the function body,
   recompiling on every column. Hoist to a package-level `var`.
 
-- [ ] **Raw SQL string threading in `countRows`.**
+- [x] **Raw SQL string threading in `countRows`.**
   `countRows` accepts a fully-formed SQL string built with `Sprintf`. The
   signature invites misuse. Accept `(db, table)` and build the query internally.
 

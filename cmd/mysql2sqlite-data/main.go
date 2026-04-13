@@ -73,7 +73,7 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 	if err != nil {
 		return err
 	}
-	sourceCount, err := mybbdb.CountRows(ctx, mysqlDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mybbdb.MysqlIdent(table)))
+	sourceCount, err := mybbdb.CountRows(ctx, mysqlDB, table, mybbdb.MysqlIdent)
 	if err != nil {
 		return fmt.Errorf("%s: count mysql rows: %w", table, err)
 	}
@@ -136,7 +136,7 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 		return fmt.Errorf("%s: commit sqlite transaction: %w", table, err)
 	}
 
-	targetCount, err := mybbdb.CountRows(ctx, sqliteDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mybbdb.SQLiteIdent(table)))
+	targetCount, err := mybbdb.CountRows(ctx, sqliteDB, table, mybbdb.SQLiteIdent)
 	if err != nil {
 		return fmt.Errorf("%s: count sqlite rows: %w", table, err)
 	}
