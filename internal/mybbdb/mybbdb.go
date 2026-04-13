@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/mdhender/gobbs/internal/setupjson"
 )
@@ -23,6 +24,7 @@ type Config struct {
 	SQLitePath    string
 	SetupFile     string
 	AllTables     bool
+	Timeout       time.Duration
 }
 
 // RegisterFlags binds the standard flag set to cfg's fields.
@@ -34,6 +36,17 @@ func RegisterFlags(cfg *Config) {
 	flag.StringVar(&cfg.MysqlPassword, "mysql-password", "", "MySQL password")
 	flag.StringVar(&cfg.SQLitePath, "sqlite-path", "mybb.sqlite3", "SQLite database path")
 	flag.BoolVar(&cfg.AllTables, "all-tables", false, "process all tables in target schema order")
+	flag.DurationVar(&cfg.Timeout, "timeout", 0, "overall operation timeout (e.g. 5m, 1h); 0 means no timeout")
+}
+
+// ContextWithTimeout returns a context with the configured timeout applied.
+// If Timeout is zero, the parent context is returned unchanged with a no-op
+// cancel function.
+func ContextWithTimeout(parent context.Context, cfg Config) (context.Context, context.CancelFunc) {
+	if cfg.Timeout > 0 {
+		return context.WithTimeout(parent, cfg.Timeout)
+	}
+	return parent, func() {}
 }
 
 // LoadSetupDefaults fills in any unset Config fields from setup.json. If the

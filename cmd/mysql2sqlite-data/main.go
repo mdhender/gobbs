@@ -27,7 +27,8 @@ func main() {
 		mybbdb.Fail(err)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := mybbdb.ContextWithTimeout(context.Background(), cfg)
+	defer cancel()
 
 	mysqlDB, err := sql.Open("mysql", mybbdb.MysqlDSN(cfg))
 	if err != nil {

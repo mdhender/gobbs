@@ -25,7 +25,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
   `defer w.Flush()` in `main` discards the flush error. A write failure is
   silently swallowed.
 
-- [ ] **No context timeout in `-data` and `-verify`.**
+- [x] **No context timeout in `-data` and `-verify`.**
   Both use a bare `context.Background()`. A hung MySQL connection or large
   import blocks forever. Add a `--timeout` flag or a default deadline.
 
