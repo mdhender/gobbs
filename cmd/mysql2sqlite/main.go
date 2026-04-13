@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -291,6 +292,5 @@ func firstField(s string) string {
 }
 
 func fail(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
+	log.Fatal(err)
 }

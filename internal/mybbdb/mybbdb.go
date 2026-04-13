@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -158,8 +159,7 @@ func SQLiteIdent(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
-// Fail prints err to stderr and exits with code 1.
+// Fail logs err and exits with code 1.
 func Fail(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
+	log.Fatal(err)
 }

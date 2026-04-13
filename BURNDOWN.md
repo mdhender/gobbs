@@ -31,7 +31,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
 
 ## Consistency
 
-- [ ] **Inconsistent error/exit style across tools.**
+- [x] **Inconsistent error/exit style across tools.**
   `mysql2sqlite`, `-data`, and `-verify` use a hand-rolled `fail()` that writes
   to stderr via `fmt.Fprintln` and calls `os.Exit(1)`. `gobbs-serve` and
   `gobbs-static` use `log.Fatal`. Pick one convention — `log.Fatal` is
