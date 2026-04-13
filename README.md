@@ -47,6 +47,8 @@ make live
 
 That starts `air` plus a BrowserSync proxy. Open `http://localhost:3000` instead of `:8080` and the page will refresh automatically when templates, CSS, or the rebuilt preview binary change.
 
+If you prefer a named local domain such as `http://gobbs.test:3000`, add an `/etc/hosts` entry like `127.0.0.1 gobbs.test` and start BrowserSync with `BROWSER_SYNC_HOST=gobbs.test`.
+
 If you prefer a single multiplexed terminal, use `overmind` with the included [Procfile.dev](/Users/wraith/Software/mdhender/gobbs/Procfile.dev:1):
 
 ```bash
@@ -62,6 +64,12 @@ The included [`.air.toml`](/Users/wraith/Software/mdhender/gobbs/.air.toml:1) is
 - watch `cmd/`, `internal/`, `.go`, `.html`, and `.css` files
 
 `make live` uses `npx --yes browser-sync`, so it expects `npm`/`npx` to be available on your machine.
+
+Example:
+
+```bash
+BROWSER_SYNC_HOST=gobbs.test overmind start -f Procfile.dev
+```
 
 ## Static Export
 

@@ -1,5 +1,6 @@
 *.sql
 *.sqlite3
+*.swp
 /.env
 /.gocache
 /.idea

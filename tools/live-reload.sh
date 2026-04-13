@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-export PREVIEW_ADDR=localhost:8080
-export BROWSER_SYNC_PROXY=http://${PREVIEW_ADDR}
+export BROWSER_SYNC_HOST=${BROWSER_SYNC_HOST:-gobbs.test}
+export BROWSER_SYNC_PROXY=http://gobbs.test:8080
 
 npx --yes browser-sync start --config browser-sync.config.js

@@ -1,5 +1,6 @@
 module.exports = {
-  proxy: process.env.BROWSER_SYNC_PROXY || "http://localhost:8080",
+  host: process.env.BROWSER_SYNC_HOST || "gobbs.test",
+  proxy: process.env.BROWSER_SYNC_PROXY || "http://gobbs.test:8080",
   port: 3000,
   ui: false,
   notify: false,
