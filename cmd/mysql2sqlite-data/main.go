@@ -3,74 +3,57 @@ package main
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/mdhender/gobbs/internal/setupjson"
+	"github.com/mdhender/gobbs/internal/mybbdb"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "modernc.org/sqlite"
 )
 
-type config struct {
-	mysqlAddr     string
-	mysqlDatabase string
-	mysqlUser     string
-	mysqlPassword string
-	sqlitePath    string
-	setupFile     string
-	allTables     bool
-}
-
 func main() {
-	cfg := config{}
-	flag.StringVar(&cfg.setupFile, "setup-file", "setup.json", "path to setup.json")
-	flag.StringVar(&cfg.mysqlAddr, "mysql-addr", "", "MySQL host:port")
-	flag.StringVar(&cfg.mysqlDatabase, "mysql-db", "", "MySQL database name")
-	flag.StringVar(&cfg.mysqlUser, "mysql-user", "", "MySQL username")
-	flag.StringVar(&cfg.mysqlPassword, "mysql-password", "", "MySQL password")
-	flag.StringVar(&cfg.sqlitePath, "sqlite-path", "mybb.sqlite3", "SQLite database path")
-	flag.BoolVar(&cfg.allTables, "all-tables", false, "import all tables in target schema order")
+	cfg := mybbdb.Config{}
+	mybbdb.RegisterFlags(&cfg)
 	flag.Parse()
 
-	if err := loadSetupDefaults(&cfg); err != nil {
-		fail(err)
+	if err := mybbdb.LoadSetupDefaults(&cfg); err != nil {
+		mybbdb.Fail(err)
 	}
-	if err := validateConfig(cfg); err != nil {
-		fail(err)
+	if err := mybbdb.ValidateConfig(cfg); err != nil {
+		mybbdb.Fail(err)
 	}
 
 	ctx := context.Background()
 
-	mysqlDB, err := sql.Open("mysql", mysqlDSN(cfg))
+	mysqlDB, err := sql.Open("mysql", mybbdb.MysqlDSN(cfg))
 	if err != nil {
-		fail(err)
+		mybbdb.Fail(err)
 	}
 	defer mysqlDB.Close()
 
-	sqliteDB, err := sql.Open("sqlite", cfg.sqlitePath)
+	sqliteDB, err := sql.Open("sqlite", cfg.SQLitePath)
 	if err != nil {
-		fail(err)
+		mybbdb.Fail(err)
 	}
 	defer sqliteDB.Close()
 
 	if err := mysqlDB.PingContext(ctx); err != nil {
-		fail(fmt.Errorf("connect mysql: %w", err))
+		mybbdb.Fail(fmt.Errorf("connect mysql: %w", err))
 	}
 	if err := sqliteDB.PingContext(ctx); err != nil {
-		fail(fmt.Errorf("connect sqlite: %w", err))
+		mybbdb.Fail(fmt.Errorf("connect sqlite: %w", err))
 	}
 	if _, err := sqliteDB.ExecContext(ctx, "PRAGMA foreign_keys = OFF"); err != nil {
-		fail(fmt.Errorf("disable sqlite foreign keys: %w", err))
+		mybbdb.Fail(fmt.Errorf("disable sqlite foreign keys: %w", err))
 	}
 
-	tables, err := resolveTables(ctx, sqliteDB, cfg, flag.Args())
+	tables, err := mybbdb.ResolveTables(ctx, sqliteDB, cfg, flag.Args())
 	if err != nil {
-		fail(err)
+		mybbdb.Fail(err)
 	}
 
 	var failed []string
@@ -81,87 +64,8 @@ func main() {
 		}
 	}
 	if len(failed) > 0 {
-		fail(fmt.Errorf("import completed with issues in %d table(s): %s", len(failed), strings.Join(failed, ", ")))
+		mybbdb.Fail(fmt.Errorf("import completed with issues in %d table(s): %s", len(failed), strings.Join(failed, ", ")))
 	}
-}
-
-func loadSetupDefaults(cfg *config) error {
-	values, err := setupjson.Parse(cfg.setupFile)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil
-		}
-		return err
-	}
-	if cfg.mysqlAddr == "" {
-		cfg.mysqlAddr = values.Database.Hostname
-	}
-	if cfg.mysqlDatabase == "" {
-		cfg.mysqlDatabase = values.Database.Database
-	}
-	if cfg.mysqlUser == "" {
-		cfg.mysqlUser = values.Database.Username
-	}
-	if cfg.mysqlPassword == "" {
-		cfg.mysqlPassword = values.Database.Password
-	}
-	return nil
-}
-
-func validateConfig(cfg config) error {
-	if cfg.mysqlAddr == "" {
-		return errors.New("missing MySQL host:port; set --mysql-addr or setup.json database.hostname")
-	}
-	if cfg.mysqlDatabase == "" {
-		return errors.New("missing MySQL database name; set --mysql-db or setup.json database.database")
-	}
-	if cfg.mysqlUser == "" {
-		return errors.New("missing MySQL username; set --mysql-user or setup.json database.username")
-	}
-	return nil
-}
-
-func mysqlDSN(cfg config) string {
-	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=UTC", cfg.mysqlUser, cfg.mysqlPassword, cfg.mysqlAddr, cfg.mysqlDatabase)
-}
-
-func resolveTables(ctx context.Context, sqliteDB *sql.DB, cfg config, args []string) ([]string, error) {
-	if cfg.allTables {
-		tables, err := sqliteTablesInCreateOrder(ctx, sqliteDB)
-		if err != nil {
-			return nil, err
-		}
-		if len(args) > 0 {
-			return nil, errors.New("do not pass table names with --all-tables")
-		}
-		return tables, nil
-	}
-	if len(args) == 0 {
-		return nil, errors.New("pass one or more table names, or use --all-tables")
-	}
-	return args, nil
-}
-
-func sqliteTablesInCreateOrder(ctx context.Context, db *sql.DB) ([]string, error) {
-	rows, err := db.QueryContext(ctx, `
-SELECT name
-FROM sqlite_master
-WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
-ORDER BY rowid`)
-	if err != nil {
-		return nil, fmt.Errorf("list sqlite tables: %w", err)
-	}
-	defer rows.Close()
-
-	var tables []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, err
-		}
-		tables = append(tables, name)
-	}
-	return tables, rows.Err()
 }
 
 func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) error {
@@ -169,12 +73,12 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 	if err != nil {
 		return err
 	}
-	sourceCount, err := countRows(ctx, mysqlDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mysqlIdent(table)))
+	sourceCount, err := mybbdb.CountRows(ctx, mysqlDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mybbdb.MysqlIdent(table)))
 	if err != nil {
 		return fmt.Errorf("%s: count mysql rows: %w", table, err)
 	}
 
-	rows, err := mysqlDB.QueryContext(ctx, fmt.Sprintf("SELECT * FROM %s", mysqlIdent(table)))
+	rows, err := mysqlDB.QueryContext(ctx, fmt.Sprintf("SELECT * FROM %s", mybbdb.MysqlIdent(table)))
 	if err != nil {
 		return fmt.Errorf("%s: query mysql rows: %w", table, err)
 	}
@@ -192,7 +96,7 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s", sqliteIdent(table))); err != nil {
+	if _, err := tx.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s", mybbdb.SQLiteIdent(table))); err != nil {
 		return fmt.Errorf("%s: clear sqlite table: %w", table, err)
 	}
 	if _, err := tx.ExecContext(ctx, "DELETE FROM sqlite_sequence WHERE name = ?", table); err != nil {
@@ -232,7 +136,7 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 		return fmt.Errorf("%s: commit sqlite transaction: %w", table, err)
 	}
 
-	targetCount, err := countRows(ctx, sqliteDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", sqliteIdent(table)))
+	targetCount, err := mybbdb.CountRows(ctx, sqliteDB, fmt.Sprintf("SELECT COUNT(*) FROM %s", mybbdb.SQLiteIdent(table)))
 	if err != nil {
 		return fmt.Errorf("%s: count sqlite rows: %w", table, err)
 	}
@@ -245,7 +149,7 @@ func importTable(ctx context.Context, mysqlDB, sqliteDB *sql.DB, table string) e
 }
 
 func sqliteDeclaredTypes(ctx context.Context, db *sql.DB, table string) (map[string]string, error) {
-	rows, err := db.QueryContext(ctx, fmt.Sprintf("PRAGMA table_info(%s)", sqliteIdent(table)))
+	rows, err := db.QueryContext(ctx, fmt.Sprintf("PRAGMA table_info(%s)", mybbdb.SQLiteIdent(table)))
 	if err != nil {
 		return nil, fmt.Errorf("%s: read sqlite table info: %w", table, err)
 	}
@@ -272,24 +176,16 @@ func sqliteDeclaredTypes(ctx context.Context, db *sql.DB, table string) (map[str
 	return types, rows.Err()
 }
 
-func countRows(ctx context.Context, db *sql.DB, query string) (int64, error) {
-	var count int64
-	if err := db.QueryRowContext(ctx, query).Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
 func buildInsertSQL(table string, columns []string) string {
 	colNames := make([]string, 0, len(columns))
 	placeholders := make([]string, 0, len(columns))
 	for _, col := range columns {
-		colNames = append(colNames, sqliteIdent(col))
+		colNames = append(colNames, mybbdb.SQLiteIdent(col))
 		placeholders = append(placeholders, "?")
 	}
 	return fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s)",
-		sqliteIdent(table),
+		mybbdb.SQLiteIdent(table),
 		strings.Join(colNames, ", "),
 		strings.Join(placeholders, ", "),
 	)
@@ -320,17 +216,4 @@ func coerceSQLiteValue(v any, declType string) any {
 	default:
 		return fmt.Sprint(value)
 	}
-}
-
-func mysqlIdent(name string) string {
-	return "`" + strings.ReplaceAll(name, "`", "``") + "`"
-}
-
-func sqliteIdent(name string) string {
-	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-}
-
-func fail(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
 }

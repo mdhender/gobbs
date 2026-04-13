@@ -4,7 +4,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
 
 ## Refactoring
 
-- [ ] **Heavy duplication between `mysql2sqlite-data` and `mysql2sqlite-verify`.**
+- [x] **Heavy duplication between `mysql2sqlite-data` and `mysql2sqlite-verify`.**
   `config`, `loadSetupDefaults`, `validateConfig`, `mysqlDSN`, `resolveTables`,
   `sqliteTablesInCreateOrder`, `countRows`, `mysqlIdent`, `sqliteIdent`, and `fail`
   are copy-pasted across both tools (~80 lines). Extract a shared package
@@ -59,5 +59,5 @@ regression-safe.
   whitespace trimming on comma-separated column lists.
 - [ ] **`cmd/mysql2sqlite-data`: `coerceSQLiteValue`** — verify nil, `[]byte`,
   `time.Time`, `bool`, `int64`/`float64`/`string`, and fallback coercions.
-- [ ] **Shared helpers (`mysqlIdent`, `sqliteIdent`)** — verify identifier
+- [x] **Shared helpers (`mysqlIdent`, `sqliteIdent`)** — verify identifier
   quoting and escaping of embedded quotes.
