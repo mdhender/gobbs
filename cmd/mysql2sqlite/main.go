@@ -38,6 +38,7 @@ var (
 	indexRE       = regexp.MustCompile("^(UNIQUE\\s+)?INDEX `([^`]+)` \\((.+)\\)$")
 	fulltextRE    = regexp.MustCompile("^FULLTEXT INDEX `([^`]+)` \\((.+)\\)$")
 	pkRE          = regexp.MustCompile("^PRIMARY KEY \\((.+)\\)$")
+	defaultRE     = regexp.MustCompile(`\bDEFAULT\s+(.+?)(?:\s+(?:NOT NULL|NULL|AUTO_INCREMENT)\b|$)`)
 )
 
 func main() {
@@ -147,7 +148,7 @@ func parseColumn(name, raw string) columnDef {
 		notNull:       strings.Contains(raw, "NOT NULL"),
 		autoIncrement: strings.Contains(raw, "AUTO_INCREMENT"),
 	}
-	if m := regexp.MustCompile(`\bDEFAULT\s+(.+?)(?:\s+(?:NOT NULL|NULL|AUTO_INCREMENT)\b|$)`).FindStringSubmatch(raw); m != nil {
+	if m := defaultRE.FindStringSubmatch(raw); m != nil {
 		col.defaultValue = strings.TrimSpace(m[1])
 	}
 	return col

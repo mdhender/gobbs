@@ -10,7 +10,7 @@ Tracked issues from a review of the five command-line tools under `cmd/`.
   are copy-pasted across both tools (~80 lines). Extract a shared package
   (e.g. `internal/mybbdb`).
 
-- [ ] **Regex compiled on every call in `mysql2sqlite`.**
+- [x] **Regex compiled on every call in `mysql2sqlite`.**
   `parseColumn` (line 150) calls `regexp.MustCompile` inside the function body,
   recompiling on every column. Hoist to a package-level `var`.
 
