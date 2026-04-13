@@ -9,3 +9,8 @@
 /mysql2sqlite
 /mysql2sqlite-data
 /mysql2sqlite-verify
+/gobbs-static
+/gobbs-serve
+/.gocache/
+/tmp/
+/public/

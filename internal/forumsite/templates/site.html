@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ .PageTitle }}</title>
+  <link rel="stylesheet" href="{{ .Site.BaseURL }}assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{{ .Site.BaseURL }}">{{ .Site.Title }}</a>
+      <p class="tagline">Read-only forum archive generated from the MyBB SQLite snapshot.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    {{ if .Breadcrumb }}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      {{ range .Breadcrumb }}
+      <a href="{{ .Href }}">{{ .Label }}</a>
+      {{ end }}
+    </nav>
+    {{ end }}
+
+    {{ if eq .Section "home" }}
+    <section class="hero">
+      <h1>Forum Archive</h1>
+      <p>{{ len .Site.Threads }} visible threads and preserved attachments, rendered as a static site.</p>
+    </section>
+
+    <section class="forum-grid">
+      {{ range .Forums }}
+      <article class="forum-card">
+        <h2><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h2>
+        {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+        <p class="forum-meta">{{ .ThreadsCount }} threads · {{ .PostsCount }} posts</p>
+        {{ if .Children }}
+        <ul class="subforums">
+          {{ range .Children }}
+          <li><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></li>
+          {{ end }}
+        </ul>
+        {{ end }}
+      </article>
+      {{ end }}
+    </section>
+    {{ end }}
+
+    {{ if eq .Section "forum" }}
+    <section class="hero hero-compact">
+      <h1>{{ .Forum.Name }}</h1>
+      {{ if .Forum.DescriptionHTML }}<div class="forum-description">{{ .Forum.DescriptionHTML }}</div>{{ end }}
+    </section>
+
+    {{ if .Forum.Children }}
+    <section class="panel">
+      <h2>Subforums</h2>
+      <div class="forum-grid">
+        {{ range .Forum.Children }}
+        <article class="forum-card">
+          <h3><a href="{{ forumLink $.Site .ID }}">{{ .Name }}</a></h3>
+          {{ if .DescriptionHTML }}<div class="forum-description">{{ .DescriptionHTML }}</div>{{ end }}
+          <p class="forum-meta">{{ .ThreadsCount }} threads · {{ .PostsCount }} posts</p>
+        </article>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+
+    <section class="panel">
+      <h2>Threads</h2>
+      <div class="thread-list">
+        {{ range .Forum.Threads }}
+        <article class="thread-row">
+          <div>
+            <h3><a href="{{ threadLink $.Site .ID }}">{{ .Subject }}</a>{{ if .Sticky }} <span class="pill">Sticky</span>{{ end }}</h3>
+            <p class="thread-meta">Started by {{ .AuthorName }} · {{ .CreatedAt.Format "Jan 2, 2006" }}</p>
+          </div>
+          <div class="thread-stats">
+            <span>{{ .Replies }} replies</span>
+            <span>{{ .Views }} views</span>
+          </div>
+        </article>
+        {{ else }}
+        <p class="empty">No visible threads in this forum.</p>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+
+    {{ if eq .Section "thread" }}
+    <section class="hero hero-compact">
+      <h1>{{ .Thread.Subject }}</h1>
+      <p class="thread-meta">Started by {{ .Thread.AuthorName }} · {{ .Thread.CreatedAt.Format "Jan 2, 2006 15:04 MST" }}</p>
+    </section>
+
+    <section class="posts">
+      {{ range .Thread.Posts }}
+      <article class="post-card" id="post-{{ .ID }}">
+        <aside class="post-author">
+          <h2>{{ .AuthorName }}</h2>
+          {{ if and .Author .Author.AvatarPath }}
+          <img class="avatar" src="{{ .Author.AvatarPath }}" alt="{{ .AuthorName }} avatar" loading="lazy">
+          {{ else }}
+          <div class="avatar avatar-fallback">{{ initial .AuthorName }}</div>
+          {{ end }}
+          {{ if and .Author .Author.Title }}<p class="author-title">{{ .Author.Title }}</p>{{ end }}
+          {{ if .Author }}<p class="author-meta">{{ .Author.PostCount }} posts</p>{{ end }}
+        </aside>
+        <div class="post-body">
+          <header class="post-head">
+            <a class="post-anchor" href="#post-{{ .ID }}">#{{ .ID }}</a>
+            <time datetime="{{ .CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}">{{ .CreatedAt.Format "Jan 2, 2006 15:04 MST" }}</time>
+          </header>
+          <div class="prose">{{ .BodyHTML }}</div>
+          {{ if .Attachments }}
+          <section class="attachments">
+            <h3>Attachments</h3>
+            <ul>
+              {{ range .Attachments }}
+              <li>
+                <a href="{{ .StoredPath }}">{{ .FileName }}</a>
+                {{ if .ThumbnailPath }}<span> · <a href="{{ .ThumbnailPath }}">thumbnail</a></span>{{ end }}
+              </li>
+              {{ end }}
+            </ul>
+          </section>
+          {{ end }}
+          {{ if .EditedAtString }}
+          <p class="edit-note">Edited {{ .EditedAtString }}{{ if .EditReason }} · {{ .EditReason }}{{ end }}</p>
+          {{ end }}
+        </div>
+      </article>
+      {{ end }}
+    </section>
+    {{ end }}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Generated {{ .Site.GeneratedAt.Format "Jan 2, 2006 15:04 MST" }}.</p>
+    </div>
+  </footer>
+</body>
+</html>

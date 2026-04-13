@@ -1,0 +1,84 @@
+# gobbs
+
+Tools for converting a MyBB forum into SQLite and rendering it as a read-only static forum archive.
+
+## What Is Here
+
+- `cmd/mysql2sqlite` converts the MySQL schema to SQLite-friendly SQL.
+- `cmd/mysql2sqlite-data` imports MyBB data into `mybb.sqlite3`.
+- `cmd/mysql2sqlite-verify` compares row counts between MySQL and SQLite.
+- `cmd/gobbs-serve` runs a local preview server for the archive.
+- `cmd/gobbs-static` writes the static site to `public/`.
+- `internal/forumsite` contains the shared loader, renderer, templates, and styles used by both preview and export.
+
+## Development Loop
+
+Preview mode is intended for day-to-day work. It reads the SQLite archive directly and uses live templates from disk, so changes to Go code, HTML templates, and CSS show up on refresh.
+
+Run the preview server directly:
+
+```bash
+env GOCACHE=$(pwd)/.gocache go run ./cmd/gobbs-serve
+```
+
+Or use:
+
+```bash
+make serve
+```
+
+Or use `air` for automatic rebuilds:
+
+```bash
+air
+```
+
+Or:
+
+```bash
+make air
+```
+
+The included [`.air.toml`](/Users/wraith/Software/mdhender/gobbs/.air.toml:1) is configured to:
+
+- build `cmd/gobbs-serve`
+- use a repo-local `.gocache`
+- watch `cmd/`, `internal/`, `.go`, `.html`, and `.css` files
+
+## Static Export
+
+When the preview looks right, generate the static site:
+
+```bash
+env GOCACHE=$(pwd)/.gocache go run ./cmd/gobbs-static -out public
+```
+
+Or:
+
+```bash
+make build
+```
+
+That writes:
+
+- `public/index.html`
+- `public/f/<fid>/index.html`
+- `public/t/<tid>/index.html`
+- `public/assets/site.css`
+
+The generated pages link to files in `uploads/`, so deploys should publish both `public/` and `uploads/` together.
+
+## Templates
+
+Live preview reads template assets from:
+
+- [internal/forumsite/templates/site.html](/Users/wraith/Software/mdhender/gobbs/internal/forumsite/templates/site.html:1)
+- [internal/forumsite/templates/site.css](/Users/wraith/Software/mdhender/gobbs/internal/forumsite/templates/site.css:1)
+
+Static export uses embedded copies of those same files, so the preview and export paths stay aligned.
+
+## Notes
+
+- `.env`, `setup.json`, and `*.sqlite3` are ignored by Git.
+- `GOCACHE` only controls where Go stores build cache artifacts; it does not change program behavior.
+- The current renderer handles common MyBB BBCode and attachments, but there is still room to improve HTML-heavy forum descriptions and some quote edge cases.
