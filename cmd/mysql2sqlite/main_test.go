@@ -154,6 +154,58 @@ func TestNormalizeDefault(t *testing.T) {
 	}
 }
 
+func TestParseColumns(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		input string
+		want  []string
+	}{
+		{
+			name:  "single bare column",
+			input: "`uid`",
+			want:  []string{"uid"},
+		},
+		{
+			name:  "multiple backtick-quoted columns",
+			input: "`uid`, `username`, `email`",
+			want:  []string{"uid", "username", "email"},
+		},
+		{
+			name:  "extra whitespace around columns",
+			input: "  `a` ,  `b`  , `c` ",
+			want:  []string{"a", "b", "c"},
+		},
+		{
+			name:  "no backticks",
+			input: "id, name",
+			want:  []string{"id", "name"},
+		},
+		{
+			name:  "single column no backticks",
+			input: "id",
+			want:  []string{"id"},
+		},
+		{
+			name:  "empty parts filtered",
+			input: "`a`, , `b`",
+			want:  []string{"a", "b"},
+		},
+	}
+	for _, tt := range tests {
+		got := parseColumns(tt.input)
+		if len(got) != len(tt.want) {
+			t.Errorf("parseColumns(%q) [%s]: got %v, want %v", tt.input, tt.name, got, tt.want)
+			continue
+		}
+		for i := range got {
+			if got[i] != tt.want[i] {
+				t.Errorf("parseColumns(%q) [%s]: index %d: got %q, want %q", tt.input, tt.name, i, got[i], tt.want[i])
+			}
+		}
+	}
+}
+
 func TestMapType(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

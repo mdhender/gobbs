@@ -55,7 +55,7 @@ regression-safe.
   NOT NULL detection, and AUTO_INCREMENT detection from raw column tails.
 - [x] **`cmd/mysql2sqlite`: `normalizeDefault`** — verify BLOB `""` → `X''`
   conversion and pass-through for other types.
-- [ ] **`cmd/mysql2sqlite`: `parseColumns`** — verify backtick stripping and
+- [x] **`cmd/mysql2sqlite`: `parseColumns`** — verify backtick stripping and
   whitespace trimming on comma-separated column lists.
 - [ ] **`cmd/mysql2sqlite-data`: `coerceSQLiteValue`** — verify nil, `[]byte`,
   `time.Time`, `bool`, `int64`/`float64`/`string`, and fallback coercions.
