@@ -112,3 +112,71 @@ func TestBuildWritesErrorPages(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildCopiesUploadsDirectory(t *testing.T) {
+	t.Parallel()
+
+	uploadsDir := filepath.Join(t.TempDir(), "uploads")
+	if err := os.MkdirAll(filepath.Join(uploadsDir, "avatars"), 0o755); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	want := "avatar-bytes"
+	srcFile := filepath.Join(uploadsDir, "avatars", "avatar_1.png")
+	if err := os.WriteFile(srcFile, []byte(want), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	renderer, err := New(Config{
+		SQLitePath:   filepath.Join("..", "..", "mybb.sqlite3"),
+		SetupPath:    filepath.Join("..", "..", "setup.json"),
+		TemplatesDir: "templates",
+		UploadsDir:   uploadsDir,
+		LiveTemplate: true,
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	defer renderer.Close()
+
+	outDir := t.TempDir()
+	if err := renderer.Build(outDir); err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+
+	got, err := os.ReadFile(filepath.Join(outDir, "uploads", "avatars", "avatar_1.png"))
+	if err != nil {
+		t.Fatalf("ReadFile() error = %v", err)
+	}
+	if string(got) != want {
+		t.Fatalf("copied upload = %q, want %q", string(got), want)
+	}
+}
+
+func TestBuildPrefixesAssetLinksWithBaseURL(t *testing.T) {
+	t.Parallel()
+
+	renderer, err := New(Config{
+		SQLitePath:   filepath.Join("..", "..", "mybb.sqlite3"),
+		SetupPath:    filepath.Join("..", "..", "setup.json"),
+		TemplatesDir: "templates",
+		BaseURL:      "/archive/",
+		LiveTemplate: true,
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	defer renderer.Close()
+
+	outDir := t.TempDir()
+	if err := renderer.Build(outDir); err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+
+	indexHTML, err := os.ReadFile(filepath.Join(outDir, "index.html"))
+	if err != nil {
+		t.Fatalf("ReadFile(index.html) error = %v", err)
+	}
+	if !strings.Contains(string(indexHTML), `href="/archive/assets/site.css"`) {
+		t.Fatalf("index.html does not contain base-url-prefixed stylesheet link")
+	}
+}

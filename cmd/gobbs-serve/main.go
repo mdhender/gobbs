@@ -17,6 +17,7 @@ func main() {
 	flag.StringVar(&cfg.TablePrefix, "table-prefix", "", "MyBB table prefix, auto-detected when empty")
 	flag.StringVar(&cfg.SiteTitle, "site-title", "PlayByMail Forums Archive", "site title for generated pages")
 	flag.StringVar(&cfg.BaseURL, "base-url", "/", "base URL prefix for generated links")
+	flag.StringVar(&cfg.UploadsDir, "uploads-dir", "uploads", "directory containing archived uploads and avatars")
 	flag.StringVar(&cfg.TemplatesDir, "templates-dir", "internal/forumsite/templates", "directory containing live templates and assets")
 	flag.StringVar(&listenAddr, "listen", "127.0.0.1:8080", "address for the preview server")
 	flag.Parse()

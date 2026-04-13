@@ -35,6 +35,7 @@ type Config struct {
 	TablePrefix  string
 	SiteTitle    string
 	BaseURL      string
+	UploadsDir   string
 	TemplatesDir string
 	LiveTemplate bool
 	TextFormats  setupjson.TextFormats
@@ -164,6 +165,9 @@ func New(cfg Config) (*Renderer, error) {
 		cfg.SiteTitle = "PlayByMail Forums Archive"
 	}
 	cfg.BaseURL = normalizeBaseURL(cfg.BaseURL)
+	if cfg.UploadsDir == "" {
+		cfg.UploadsDir = "uploads"
+	}
 	if cfg.TemplatesDir == "" {
 		cfg.TemplatesDir = filepath.Join("internal", "forumsite", "templates")
 	}
@@ -233,6 +237,9 @@ func (r *Renderer) Build(outDir string) error {
 	if err := os.WriteFile(filepath.Join(outDir, "assets", "site.css"), css, 0o644); err != nil {
 		return fmt.Errorf("write site stylesheet: %w", err)
 	}
+	if err := copyDir(filepath.Clean(r.cfg.UploadsDir), filepath.Join(outDir, "uploads")); err != nil {
+		return fmt.Errorf("copy uploads directory: %w", err)
+	}
 
 	indexData := pageData{
 		Site:      site,
@@ -287,9 +294,32 @@ func (r *Renderer) Build(outDir string) error {
 func (r *Renderer) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/assets/site.css", r.serveCSS)
-	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(r.cfg.UploadsDir))))
 	mux.HandleFunc("/", r.servePage)
-	return mux
+
+	baseURL := normalizeBaseURL(r.cfg.BaseURL)
+	if baseURL == "/" {
+		return mux
+	}
+
+	basePath := strings.TrimRight(baseURL, "/")
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == basePath {
+			http.Redirect(w, req, baseURL, http.StatusMovedPermanently)
+			return
+		}
+		if !strings.HasPrefix(req.URL.Path, basePath+"/") {
+			http.NotFound(w, req)
+			return
+		}
+
+		clone := req.Clone(req.Context())
+		clone.URL.Path = strings.TrimPrefix(req.URL.Path, basePath)
+		if clone.URL.Path == "" {
+			clone.URL.Path = "/"
+		}
+		mux.ServeHTTP(w, clone)
+	})
 }
 
 func (r *Renderer) serveCSS(w http.ResponseWriter, req *http.Request) {
@@ -376,6 +406,9 @@ func (r *Renderer) servePage(w http.ResponseWriter, req *http.Request) {
 
 func (r *Renderer) loadTemplate() (*template.Template, error) {
 	funcs := template.FuncMap{
+		"siteLink": func(site *siteData, path string) string {
+			return relLink(site.BaseURL, path)
+		},
 		"forumLink": func(site *siteData, fid int64) string {
 			return relLink(site.BaseURL, fmt.Sprintf("/f/%d/", fid))
 		},
@@ -679,6 +712,62 @@ func renderPage(tmpl *template.Template, path string, data pageData) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
+}
+
+func copyDir(srcDir, dstDir string) error {
+	info, err := os.Stat(srcDir)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("%s is not a directory", srcDir)
+	}
+
+	return filepath.WalkDir(srcDir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relPath, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dstDir, relPath)
+		if d.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+
+		return copyFile(path, target)
+	})
+}
+
+func copyFile(srcPath, dstPath string) error {
+	in, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	info, err := in.Stat()
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(dstPath), 0o755); err != nil {
+		return err
+	}
+
+	out, err := os.OpenFile(dstPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode().Perm())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, in); err != nil {
+		return err
+	}
+	return out.Close()
 }
 
 func renderHTTPErrorPage(w http.ResponseWriter, tmpl *template.Template, data pageData) {

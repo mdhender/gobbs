@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ .PageTitle }}</title>
-  <link rel="stylesheet" href="{{ .Site.BaseURL }}assets/site.css">
+  <link rel="stylesheet" href="{{ siteLink .Site "/assets/site.css" }}">
 </head>
 <body>
   <header class="site-header">
@@ -193,7 +193,7 @@
         <aside class="post-author">
           <h2>{{ .AuthorName }}</h2>
           {{ if and .Author .Author.AvatarPath }}
-          <img class="avatar" src="{{ .Author.AvatarPath }}" alt="{{ .AuthorName }} avatar" loading="lazy">
+          <img class="avatar" src="{{ siteLink $.Site .Author.AvatarPath }}" alt="{{ .AuthorName }} avatar" loading="lazy">
           {{ else }}
           <div class="avatar avatar-fallback">{{ initial .AuthorName }}</div>
           {{ end }}
@@ -212,8 +212,8 @@
             <ul>
               {{ range .Attachments }}
               <li>
-                <a href="{{ .StoredPath }}">{{ .FileName }}</a>
-                {{ if .ThumbnailPath }}<span> · <a href="{{ .ThumbnailPath }}">thumbnail</a></span>{{ end }}
+                <a href="{{ siteLink $.Site .StoredPath }}">{{ .FileName }}</a>
+                {{ if .ThumbnailPath }}<span> · <a href="{{ siteLink $.Site .ThumbnailPath }}">thumbnail</a></span>{{ end }}
               </li>
               {{ end }}
             </ul>

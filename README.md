@@ -91,8 +91,9 @@ That writes:
 - `public/f/<fid>/index.html`
 - `public/t/<tid>/index.html`
 - `public/assets/site.css`
+- `public/uploads/...`
 
-The generated pages link to files in `uploads/`, so deploys should publish both `public/` and `uploads/` together.
+By default, the static builder copies the configured `uploads/` tree into `public/uploads/` so attachments and avatars ship with the exported archive.
 
 ## Templates
 
@@ -107,4 +108,5 @@ Static export uses embedded copies of those same files, so the preview and expor
 
 - `.env`, `setup.json`, and `*.sqlite3` are ignored by Git.
 - `GOCACHE` only controls where Go stores build cache artifacts; it does not change program behavior.
+- `gobbs-static` now copies the configured `uploads/` tree into `public/uploads/` so exported attachments and avatars travel with the generated site by default.
 - The current renderer handles common MyBB BBCode and attachments, but there is still room to improve HTML-heavy forum descriptions and some quote edge cases.
