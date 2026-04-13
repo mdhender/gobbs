@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,14 +20,23 @@ type config struct {
 	mysqlUser     string
 	mysqlPassword string
 	sqlitePath    string
-	envFile       string
+	setupFile     string
 	allTables     bool
+}
+
+type setupFileConfig struct {
+	Database struct {
+		Hostname string `json:"hostname"`
+		Database string `json:"database"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"database"`
 }
 
 func main() {
 	cfg := config{}
-	flag.StringVar(&cfg.envFile, "env-file", ".env", "path to .env file")
-	flag.StringVar(&cfg.mysqlAddr, "mysql-addr", "127.0.0.1:3307", "MySQL host:port")
+	flag.StringVar(&cfg.setupFile, "setup-file", "setup.json", "path to setup.json")
+	flag.StringVar(&cfg.mysqlAddr, "mysql-addr", "", "MySQL host:port")
 	flag.StringVar(&cfg.mysqlDatabase, "mysql-db", "", "MySQL database name")
 	flag.StringVar(&cfg.mysqlUser, "mysql-user", "", "MySQL username")
 	flag.StringVar(&cfg.mysqlPassword, "mysql-password", "", "MySQL password")
@@ -35,7 +44,7 @@ func main() {
 	flag.BoolVar(&cfg.allTables, "all-tables", false, "verify all tables in target schema order")
 	flag.Parse()
 
-	if err := loadEnvDefaults(&cfg); err != nil {
+	if err := loadSetupDefaults(&cfg); err != nil {
 		fail(err)
 	}
 	if err := validateConfig(cfg); err != nil {
@@ -85,32 +94,38 @@ func main() {
 	fmt.Printf("verified %d table(s): all row counts match\n", len(tables))
 }
 
-func loadEnvDefaults(cfg *config) error {
-	values, err := parseDotEnv(cfg.envFile)
+func loadSetupDefaults(cfg *config) error {
+	values, err := parseSetupJSON(cfg.setupFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil
 		}
 		return err
 	}
+	if cfg.mysqlAddr == "" {
+		cfg.mysqlAddr = values.Database.Hostname
+	}
 	if cfg.mysqlDatabase == "" {
-		cfg.mysqlDatabase = values["MYBB_DATABASE_DATABASE"]
+		cfg.mysqlDatabase = values.Database.Database
 	}
 	if cfg.mysqlUser == "" {
-		cfg.mysqlUser = values["MYBB_DATABASE_USERNAME"]
+		cfg.mysqlUser = values.Database.Username
 	}
 	if cfg.mysqlPassword == "" {
-		cfg.mysqlPassword = values["MYBB_DATABASE_PASSWORD"]
+		cfg.mysqlPassword = values.Database.Password
 	}
 	return nil
 }
 
 func validateConfig(cfg config) error {
+	if cfg.mysqlAddr == "" {
+		return errors.New("missing MySQL host:port; set --mysql-addr or setup.json database.hostname")
+	}
 	if cfg.mysqlDatabase == "" {
-		return errors.New("missing MySQL database name; set --mysql-db or MYBB_DATABASE_DATABASE")
+		return errors.New("missing MySQL database name; set --mysql-db or setup.json database.database")
 	}
 	if cfg.mysqlUser == "" {
-		return errors.New("missing MySQL username; set --mysql-user or MYBB_DATABASE_USERNAME")
+		return errors.New("missing MySQL username; set --mysql-user or setup.json database.username")
 	}
 	return nil
 }
@@ -119,39 +134,18 @@ func mysqlDSN(cfg config) string {
 	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=UTC", cfg.mysqlUser, cfg.mysqlPassword, cfg.mysqlAddr, cfg.mysqlDatabase)
 }
 
-func parseDotEnv(path string) (map[string]string, error) {
+func parseSetupJSON(path string) (setupFileConfig, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return setupFileConfig{}, err
 	}
 	defer f.Close()
 
-	values := map[string]string{}
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		key, value, ok := strings.Cut(line, "=")
-		if !ok {
-			return nil, fmt.Errorf("invalid line in %s: %s", path, line)
-		}
-		values[strings.TrimSpace(key)] = trimQuotes(strings.TrimSpace(value))
+	var cfg setupFileConfig
+	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
+		return setupFileConfig{}, fmt.Errorf("parse %s: %w", path, err)
 	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-	return values, nil
-}
-
-func trimQuotes(s string) string {
-	if len(s) >= 2 {
-		if (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'') {
-			return s[1 : len(s)-1]
-		}
-	}
-	return s
+	return cfg, nil
 }
 
 func resolveTables(ctx context.Context, sqliteDB *sql.DB, cfg config, args []string) ([]string, error) {
