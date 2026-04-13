@@ -49,7 +49,7 @@ Unit tests for pure functions that currently have zero coverage. These should
 be written before the refactoring items above so the extractions are
 regression-safe.
 
-- [ ] **`cmd/mysql2sqlite`: `mapType`** — verify MySQL-to-SQLite type mapping
+- [x] **`cmd/mysql2sqlite`: `mapType`** — verify MySQL-to-SQLite type mapping
   for each branch (`tinyint`, `varchar`, `blob`, `bool`, unknown, etc.).
 - [ ] **`cmd/mysql2sqlite`: `parseColumn`** — verify DEFAULT extraction,
   NOT NULL detection, and AUTO_INCREMENT detection from raw column tails.
